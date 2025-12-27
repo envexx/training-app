@@ -7,6 +7,9 @@
 
 import type { TrainingModule, TrainingModuleAPI } from './DataTrainingPage';
 
+// Re-export types for convenience
+export type { TrainingModule, TrainingModuleAPI };
+
 /**
  * Convert TrainingModule to API format
  */

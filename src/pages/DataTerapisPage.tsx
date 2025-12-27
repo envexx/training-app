@@ -1,5 +1,5 @@
 import { useState, useEffect, type FC } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { Page } from '@/components/Page.tsx';
 import { PageHeader } from '@/components/PageHeader/PageHeader.tsx';
@@ -24,8 +24,6 @@ const STORAGE_KEY = 'terapis_list';
 
 export const DataTerapisPage: FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const viewTerapisId = searchParams.get('view');
 
   const loadTerapisList = (): Terapis[] => {
     try {

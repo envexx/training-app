@@ -6,7 +6,7 @@ import { BottomNavigation } from '@/components/BottomNavigation/BottomNavigation
 
 import './DataTrainingPage.css';
 
-interface TrainingModule {
+export interface TrainingModule {
   id: string;
   category: 'BASIC' | 'TECHNICAL' | 'MANAGERIAL' | 'HSE';
   moduleName: string;
@@ -15,6 +15,23 @@ interface TrainingModule {
   trainer: string;
   targetTrainee: 'P' | 'A';
   weeks: Set<number>; // Set of week numbers (1-52) when training is scheduled
+  year: number; // Year for the schedule
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface TrainingModuleAPI {
+  id: string;
+  category: 'BASIC' | 'TECHNICAL' | 'MANAGERIAL' | 'HSE';
+  moduleName: string;
+  durasi: string;
+  classField: string;
+  trainer: string;
+  targetTrainee: 'P' | 'A';
+  scheduledWeeks: number[]; // Array of week numbers (1-52) for backend
+  year: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 const MONTHS = [
@@ -26,18 +43,18 @@ const MONTHS = [
 const WEEKS_PER_MONTH = [4, 4, 5, 4, 5, 4, 4, 5, 4, 4, 5, 4];
 const TOTAL_WEEKS = 52;
 
-// Helper function to get month for a week number
-const getMonthForWeek = (week: number): number => {
-  let currentWeek = 1;
-  for (let month = 0; month < MONTHS.length; month++) {
-    const weeksInMonth = WEEKS_PER_MONTH[month];
-    if (week >= currentWeek && week < currentWeek + weeksInMonth) {
-      return month;
-    }
-    currentWeek += weeksInMonth;
-  }
-  return 11; // Default to December
-};
+// Helper function to get month for a week number (for future use)
+// const getMonthForWeek = (week: number): number => {
+//   let currentWeek = 1;
+//   for (let month = 0; month < MONTHS.length; month++) {
+//     const weeksInMonth = WEEKS_PER_MONTH[month];
+//     if (week >= currentWeek && week < currentWeek + weeksInMonth) {
+//       return month;
+//     }
+//     currentWeek += weeksInMonth;
+//   }
+//   return 11; // Default to December
+// };
 
 // Helper function to get week ranges for each month
 const getWeekRanges = (): Array<{ month: number; monthName: string; startWeek: number; endWeek: number; weeks: number[] }> => {
@@ -74,18 +91,7 @@ export const DataTrainingPage: FC = () => {
     targetTrainee: 'P' as 'P' | 'A',
   });
 
-  const [modules, setModules] = useState<TrainingModule[]>([
-    {
-      id: '1',
-      category: 'BASIC',
-      moduleName: 'BASIC TRAINING',
-      durasi: '',
-      classField: '',
-      trainer: '',
-      targetTrainee: 'P',
-      weeks: new Set(),
-    },
-  ]);
+  const [modules, setModules] = useState<TrainingModule[]>([]);
 
   // Load from localStorage
   useEffect(() => {
@@ -109,11 +115,12 @@ export const DataTrainingPage: FC = () => {
       if (oldStored) {
         try {
           const parsed = JSON.parse(oldStored);
-          const modulesWithSets = parsed.map((m: any) => ({
-            ...m,
-            weeks: new Set(m.weeks || []),
-            year: selectedYear,
-          }));
+        const modulesWithSets = parsed.map((m: any) => ({
+          ...m,
+          weeks: new Set(m.weeks || []),
+          year: m.year || selectedYear,
+          createdAt: m.createdAt || new Date().toISOString(),
+        }));
           setModules(modulesWithSets);
         } catch {
           // Ignore
@@ -147,10 +154,9 @@ export const DataTrainingPage: FC = () => {
       createdAt: module.createdAt,
       updatedAt: new Date().toISOString(),
     };
-  };
+  // };
 
-  // Helper function to convert API format to module (for backend integration)
-  const apiToModule = (apiData: TrainingModuleAPI): TrainingModule => {
+  // const apiToModule = (apiData: TrainingModuleAPI): TrainingModule => {
     return {
       id: apiData.id,
       category: apiData.category,
@@ -164,16 +170,17 @@ export const DataTrainingPage: FC = () => {
       createdAt: apiData.createdAt,
       updatedAt: apiData.updatedAt,
     };
-  };
+  // };
 
-  const getWeekRange = (monthIndex: number): [number, number] => {
-    let startWeek = 1;
-    for (let i = 0; i < monthIndex; i++) {
-      startWeek += WEEKS_PER_MONTH[i];
-    }
-    const endWeek = startWeek + WEEKS_PER_MONTH[monthIndex] - 1;
-    return [startWeek, endWeek];
-  };
+  // Helper function to get week range for a month (for future use)
+  // const getWeekRange = (monthIndex: number): [number, number] => {
+  //   let startWeek = 1;
+  //   for (let i = 0; i < monthIndex; i++) {
+  //     startWeek += WEEKS_PER_MONTH[i];
+  //   }
+  //   const endWeek = startWeek + WEEKS_PER_MONTH[monthIndex] - 1;
+  //   return [startWeek, endWeek];
+  // };
 
   const handleAddModule = () => {
     setEditingModule(null);
