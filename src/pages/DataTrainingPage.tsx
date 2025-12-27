@@ -139,38 +139,8 @@ export const DataTrainingPage: FC = () => {
     localStorage.setItem(`training_modules_${selectedYear}`, JSON.stringify(toStore));
   }, [modules, selectedYear]);
 
-  // Helper function to convert module to API format (for backend integration)
-  const moduleToAPI = (module: TrainingModule): TrainingModuleAPI => {
-    return {
-      id: module.id,
-      category: module.category,
-      moduleName: module.moduleName,
-      durasi: module.durasi,
-      classField: module.classField,
-      trainer: module.trainer,
-      targetTrainee: module.targetTrainee,
-      scheduledWeeks: Array.from(module.weeks),
-      year: module.year || selectedYear,
-      createdAt: module.createdAt,
-      updatedAt: new Date().toISOString(),
-    };
-  // };
-
-  // const apiToModule = (apiData: TrainingModuleAPI): TrainingModule => {
-    return {
-      id: apiData.id,
-      category: apiData.category,
-      moduleName: apiData.moduleName,
-      durasi: apiData.durasi,
-      classField: apiData.classField,
-      trainer: apiData.trainer,
-      targetTrainee: apiData.targetTrainee,
-      weeks: new Set(apiData.scheduledWeeks),
-      year: apiData.year,
-      createdAt: apiData.createdAt,
-      updatedAt: apiData.updatedAt,
-    };
-  // };
+  // Helper functions untuk backend integration tersedia di DataTrainingPage.api.ts
+  // Uncomment ketika backend sudah siap
 
   // Helper function to get week range for a month (for future use)
   // const getWeekRange = (monthIndex: number): [number, number] => {
