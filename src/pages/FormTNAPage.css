@@ -1,0 +1,545 @@
+.page-wrapper {
+  font-family: 'Quicksand', sans-serif;
+  background: #F8F9FA !important;
+  background-color: #F8F9FA !important;
+  min-height: 100vh;
+  padding-bottom: 80px;
+  position: relative;
+}
+
+.page-content {
+  padding: 20px;
+  max-width: 100%;
+  margin: 0 auto;
+  color: #1A1A1A;
+}
+
+.menu-section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 0 0 16px 0;
+}
+
+/* Search Terapis */
+.search-terapis-container {
+  position: relative;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.search-input-wrapper {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  font-size: 16px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px 12px 44px;
+  border: 1px solid #E5E5E5;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Quicksand', sans-serif;
+  color: #1A1A1A;
+  background: #F8F9FA;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #7B68EE;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(123, 104, 238, 0.1);
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #E5E5E5;
+  border-radius: 10px;
+  margin-top: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid #F0F0F0;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background: #F8F9FA;
+}
+
+.result-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #7B68EE 0%, #9B7EE8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.result-info {
+  flex: 1;
+}
+
+.result-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 2px;
+}
+
+.result-lulusan {
+  font-size: 12px;
+  color: #999;
+}
+
+.selected-terapis {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #F0F9FF;
+  border: 1px solid #7B68EE;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+
+.selected-terapis-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.selected-terapis-info i {
+  color: #7B68EE;
+  font-size: 20px;
+}
+
+.selected-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 2px;
+}
+
+.selected-lulusan {
+  font-size: 12px;
+  color: #666;
+}
+
+.btn-remove {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: #FFE0E0;
+  color: #FF3B30;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-remove:hover {
+  background: #FFD0D0;
+}
+
+.empty-state-form {
+  background: white;
+  border-radius: 12px;
+  padding: 60px 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.empty-state-form i {
+  font-size: 64px;
+  color: #7B68EE;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state-form p {
+  font-size: 14px;
+  color: #999;
+}
+
+/* Form */
+.tna-form {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.form-section {
+  margin-bottom: 24px;
+}
+
+/* Header Form Row */
+.form-header-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.form-field-inline {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-label-inline {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A1A;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+.form-input-inline {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Quicksand', sans-serif;
+  color: #1A1A1A;
+  background: white;
+  min-width: 0;
+}
+
+.form-input-inline:focus {
+  outline: none;
+  border-color: #7B68EE;
+  box-shadow: 0 0 0 3px rgba(123, 104, 238, 0.1);
+}
+
+/* Table Container */
+.table-container {
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+.tna-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tna-table thead {
+  background: #D4A574;
+  color: #1A1A1A;
+}
+
+.tna-table th {
+  padding: 12px 8px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid #C49564;
+}
+
+.tna-table td {
+  padding: 8px;
+  border: 1px solid #E5E5E5;
+  vertical-align: middle;
+}
+
+.tna-table tbody tr:hover {
+  background: #F8F9FA;
+}
+
+.td-number {
+  text-align: center;
+  font-weight: 600;
+  width: 40px;
+  background: #F8F9FA;
+}
+
+.td-actions {
+  width: 60px;
+  text-align: center;
+}
+
+.table-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #E5E5E5;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'Quicksand', sans-serif;
+  color: #1A1A1A;
+  background: white;
+  min-width: 120px;
+}
+
+.table-input:focus {
+  outline: none;
+  border-color: #7B68EE;
+  box-shadow: 0 0 0 2px rgba(123, 104, 238, 0.1);
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.btn-delete {
+  background: #FFF0F0;
+  color: #FF3B30;
+}
+
+.btn-delete:hover {
+  background: #FFE0E0;
+}
+
+.btn-add-row {
+  padding: 10px 20px;
+  background: #7B68EE;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Quicksand', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-add-row:hover {
+  background: #6A5ACD;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(123, 104, 238, 0.3);
+}
+
+/* Approval Table */
+.approval-table-container {
+  overflow-x: auto;
+}
+
+.approval-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.approval-table thead {
+  background: #D4A574;
+  color: #1A1A1A;
+}
+
+.approval-table th {
+  padding: 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid #C49564;
+}
+
+.approval-table td {
+  padding: 16px;
+  border: 1px solid #E5E5E5;
+  vertical-align: middle;
+}
+
+.approval-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #E5E5E5;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'Quicksand', sans-serif;
+  color: #1A1A1A;
+  background: white;
+  text-align: center;
+}
+
+.approval-input:focus {
+  outline: none;
+  border-color: #7B68EE;
+  box-shadow: 0 0 0 3px rgba(123, 104, 238, 0.1);
+}
+
+.approval-input::placeholder {
+  color: #999;
+  text-align: center;
+}
+
+/* Buttons */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Quicksand', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #7B68EE 0%, #9B7EE8 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(123, 104, 238, 0.3);
+}
+
+.btn-secondary {
+  background: #F5F5F5;
+  color: #666;
+}
+
+.btn-secondary:hover {
+  background: #E5E5E5;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #F0F0F0;
+  justify-content: flex-end;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-content {
+    padding: 16px;
+  }
+
+  .tna-form {
+    padding: 16px;
+  }
+
+  .form-header-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .form-field-inline {
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 100%;
+  }
+
+  .form-label-inline {
+    width: 100%;
+  }
+
+  .form-input-inline {
+    width: 100%;
+  }
+
+  .table-container {
+    overflow-x: scroll;
+  }
+
+  .tna-table {
+    min-width: 800px;
+  }
+
+  .table-input {
+    min-width: 100px;
+  }
+
+  .approval-table {
+    min-width: 600px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .tna-table th,
+  .tna-table td {
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+
+  .table-input {
+    padding: 6px;
+    font-size: 12px;
+  }
+
+  .approval-table th,
+  .approval-table td {
+    padding: 12px 8px;
+  }
+
+  .approval-input {
+    padding: 10px;
+    font-size: 12px;
+  }
+}
+

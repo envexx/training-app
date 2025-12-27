@@ -1,5 +1,176 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
 body {
-  background: var(--tg-theme-secondary-bg-color, white);
+  font-family: 'Quicksand', sans-serif;
+  background: #F8F9FA !important;
   padding: 0;
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+}
+
+/* Override Telegram UI dark backgrounds */
+#root {
+  background: #F8F9FA !important;
+  min-height: 100vh;
+}
+
+/* AppRoot background - force light background */
+.tgui-app-root,
+[class*="tgui-app-root"],
+[data-tgui-app-root],
+div[data-appearance],
+div[data-appearance="dark"],
+div[data-appearance="light"] {
+  background: #F8F9FA !important;
+  background-color: #F8F9FA !important;
+}
+
+/* Ensure all wrapper divs have correct background */
+div[class*="tgui"] {
+  background: transparent !important;
+}
+
+/* Force background for all page containers */
+.page-wrapper,
+.spendly-dashboard,
+div:has(.page-wrapper),
+div:has(.spendly-dashboard) {
+  background: #F8F9FA !important;
+  background-color: #F8F9FA !important;
+}
+
+/* Ensure all Telegram UI components use light background */
+[data-appearance="dark"],
+[data-appearance="light"] {
+  --tgui--secondary_bg_color: #F8F9FA !important;
+  --tgui--bg_color: #FFFFFF !important;
+  --tgui--section_bg_color: #FFFFFF !important;
+  background: #F8F9FA !important;
+}
+
+/* Override List and Section backgrounds */
+.tgui-list {
+  background: transparent !important;
+}
+
+.tgui-section {
+  background: transparent !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.tgui-section__header,
+.tgui-section__footer {
+  background: transparent !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+}
+
+/* Remove any background-clip issues */
+.tgui-section,
+.tgui-section * {
+  background-clip: unset !important;
+  -webkit-background-clip: unset !important;
+}
+
+/* Ensure Section has clean styling like dashboard */
+.tgui-section {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 0 16px 0 !important;
+}
+
+/* Section wrapper divs */
+div[class*="tgui"][class*="section"],
+div[class*="tgui-section"] {
+  background: transparent !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  background-clip: unset !important;
+  -webkit-background-clip: unset !important;
+}
+
+/* List component should also be clean */
+.tgui-list {
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  background-clip: unset !important;
+  -webkit-background-clip: unset !important;
+}
+
+/* Ensure cells have white background and visible text */
+.tgui-cell {
+  background: #FFFFFF !important;
+  color: #1A1A1A !important;
+}
+
+.tgui-cell__main,
+.tgui-cell__main-text,
+.tgui-cell__text {
+  color: #1A1A1A !important;
+}
+
+.tgui-cell__subhead,
+.tgui-cell__subhead-text {
+  color: #999 !important;
+}
+
+/* Override any dark theme colors */
+.tgui--appearance-dark,
+.tgui--appearance-light {
+  --tgui--secondary_bg_color: #F8F9FA !important;
+  --tgui--bg_color: #FFFFFF !important;
+  --tgui--section_bg_color: #FFFFFF !important;
+  --tgui--text_color: #1A1A1A !important;
+  --tgui--hint_color: #999 !important;
+  --tgui--subtitle_text_color: #999 !important;
+  background: #F8F9FA !important;
+  color: #1A1A1A !important;
+}
+
+/* Section headers and text */
+.tgui-section__header {
+  color: #1A1A1A !important;
+}
+
+.tgui-section__header-text {
+  color: #1A1A1A !important;
+  font-weight: 700 !important;
+}
+
+/* Ensure all text is visible */
+.tgui-list,
+.tgui-section,
+.tgui-cell * {
+  color: inherit !important;
+}
+
+/* Force text colors for better visibility */
+body,
+#root,
+.page-wrapper,
+.spendly-dashboard {
+  color: #1A1A1A !important;
+}
+
+/* Ensure Page component wrapper has correct background */
+.page-wrapper,
+.spendly-dashboard {
+  background: #F8F9FA !important;
 }

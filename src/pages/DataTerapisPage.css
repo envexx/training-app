@@ -1,0 +1,376 @@
+.page-wrapper {
+  font-family: 'Quicksand', sans-serif;
+  background: #F8F9FA !important;
+  background-color: #F8F9FA !important;
+  min-height: 100vh;
+  padding-bottom: 80px;
+  position: relative;
+}
+
+.page-content {
+  padding: 20px;
+  max-width: 100%;
+  margin: 0 auto;
+  color: #1A1A1A;
+}
+
+/* Menu Section */
+.menu-section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 0 0 16px 0;
+}
+
+.section-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header-actions .section-title {
+  margin: 0;
+}
+
+/* Buttons */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Quicksand', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #20B2AA 0%, #48D1CC 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(32, 178, 170, 0.3);
+}
+
+.btn-secondary {
+  background: #F5F5F5;
+  color: #666;
+}
+
+.btn-secondary:hover {
+  background: #E5E5E5;
+}
+
+.btn-add {
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.empty-state i {
+  font-size: 64px;
+  color: #20B2AA;
+  margin-bottom: 16px;
+}
+
+.empty-state p {
+  font-size: 16px;
+  color: #999;
+  margin-bottom: 24px;
+}
+
+/* Terapis List */
+.terapis-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.terapis-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s;
+}
+
+.terapis-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.terapis-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #F0F0F0;
+}
+
+.terapis-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #20B2AA 0%, #48D1CC 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.terapis-info {
+  flex: 1;
+}
+
+.terapis-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 0 0 4px 0;
+}
+
+.terapis-lulusan {
+  font-size: 14px;
+  color: #999;
+  margin: 0;
+}
+
+.terapis-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.detail-item i {
+  color: #20B2AA;
+  width: 20px;
+}
+
+.terapis-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #F0F0F0;
+}
+
+.btn-action {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Quicksand', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-edit {
+  background: #F0F7FF;
+  color: #4A90E2;
+}
+
+.btn-edit:hover {
+  background: #E0EFFF;
+}
+
+.btn-delete {
+  background: #FFF0F0;
+  color: #FF3B30;
+}
+
+.btn-delete:hover {
+  background: #FFE0E0;
+}
+
+/* TNA dan Evaluasi Section */
+.terapis-forms-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #F0F0F0;
+}
+
+.form-link-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.form-link-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  background: #F8F9FA;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Quicksand', sans-serif;
+  color: #1A1A1A;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.form-link-btn:hover {
+  background: #E5E5E5;
+  border-color: #20B2AA;
+}
+
+.form-link-btn i {
+  font-size: 14px;
+  color: #20B2AA;
+}
+
+.btn-full {
+  width: 100%;
+  justify-content: center;
+}
+
+.status-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+.status-badge.status-complete {
+  background: #34C759;
+  color: white;
+}
+
+@media (max-width: 480px) {
+  .form-link-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Form */
+.terapis-form {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 8px;
+}
+
+.form-label .required {
+  color: #FF3B30;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #E5E5E5;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Quicksand', sans-serif;
+  color: #1A1A1A;
+  background: white;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #20B2AA;
+  box-shadow: 0 0 0 3px rgba(32, 178, 170, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #F0F0F0;
+}
+
+.form-actions .btn {
+  flex: 1;
+}
+
+@media (max-width: 480px) {
+  .page-content {
+    padding: 16px;
+  }
+
+  .section-header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .btn-add {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .terapis-form {
+    padding: 20px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+}
+
