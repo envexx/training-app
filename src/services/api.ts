@@ -100,7 +100,7 @@ const apiFetch = async (
 
 // Generic API response handler
 const handleResponse = async <T = any>(response: Response): Promise<APIResponse<T>> => {
-  let data;
+  let data: any;
   
   try {
     const text = await response.text();
@@ -119,7 +119,7 @@ const handleResponse = async <T = any>(response: Response): Promise<APIResponse<
     throw new Error(errorMessage);
   }
 
-  return data;
+  return data as APIResponse<T>;
 };
 
 // API Methods
@@ -131,17 +131,17 @@ export const authAPI = {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     });
-    const data = await handleResponse<{
-      success: boolean;
-      data?: { token: string; user: any };
-    }>(response);
+    const result = await handleResponse<any>(response);
     
-    if (data.success && data.data && data.data.token) {
-      setToken(data.data.token);
-      setUserData(data.data.user);
+    if (result.success && result.data) {
+      const loginData = result.data as { token: string; user: any };
+      if (loginData.token) {
+        setToken(loginData.token);
+        setUserData(loginData.user);
+      }
     }
     
-    return data;
+    return result;
   },
 
   register: async (userData: {
