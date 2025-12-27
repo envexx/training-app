@@ -139,10 +139,11 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📡 API available at http://localhost:${PORT}/api/${API_VERSION}`);
-  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+const HOST = process.env.HOST || '0.0.0.0'; // Listen on all interfaces for Docker/Coolify
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running on ${HOST}:${PORT}`);
+  console.log(`📡 API available at http://${HOST}:${PORT}/api/${API_VERSION}`);
+  console.log(`🏥 Health check: http://${HOST}:${PORT}/health`);
 });
 
 // Graceful shutdown
