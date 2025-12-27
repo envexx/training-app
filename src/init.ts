@@ -14,6 +14,7 @@ import {
 
 /**
  * Initializes the application and configures its dependencies.
+ * IMPORTANT: This function must be called AFTER setupMockEnvironment() has completed.
  */
 export async function init(options: {
   debug: boolean;
@@ -21,8 +22,15 @@ export async function init(options: {
   mockForMacOS: boolean;
 }): Promise<void> {
   // Set @telegram-apps/sdk-react debug mode and initialize it.
+  // initSDK() must be called after mock environment is set up (done in index.tsx)
   setDebug(options.debug);
-  initSDK();
+  
+  try {
+    initSDK();
+  } catch (error) {
+    console.error('Failed to initialize SDK:', error);
+    // Continue anyway - the app should still work with fallbacks
+  }
 
   // Add Eruda if needed.
   options.eruda && void import('eruda').then(({ default: eruda }) => {

@@ -1,8 +1,11 @@
 import { emitEvent, isTMA, mockTelegramEnv } from '@tma.js/sdk-react';
 
-// Mock environment for both dev and production when not in Telegram
-// This allows the app to run in regular browsers (like Vercel deployment)
-(async () => {
+/**
+ * Mock environment for both dev and production when not in Telegram
+ * This allows the app to run in regular browsers (like Vercel deployment)
+ * This function must be called and awaited before initializing the SDK
+ */
+export async function setupMockEnvironment(): Promise<void> {
   try {
     const isInTelegram = await isTMA('complete');
     if (!isInTelegram) {
@@ -121,4 +124,4 @@ import { emitEvent, isTMA, mockTelegramEnv } from '@tma.js/sdk-react';
       console.error('Failed to mock Telegram environment:', mockError);
     }
   }
-})();
+}

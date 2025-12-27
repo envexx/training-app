@@ -7,17 +7,20 @@ import { retrieveLaunchParams } from '@tma.js/sdk-react';
 
 import { Root } from '@/components/Root.tsx';
 import { init } from '@/init.ts';
+import { setupMockEnvironment } from '@/mockEnv.ts';
 
 import './index.css';
-
-// Mock the environment in case, we are outside Telegram.
-import './mockEnv.ts';
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 
 // Initialize app
 (async () => {
   try {
+    // Step 1: Setup mock environment FIRST (before any SDK calls)
+    // This must be done before retrieveLaunchParams() or init()
+    await setupMockEnvironment();
+
+    // Step 2: Try to retrieve launch params (may fail if not in Telegram)
     let launchParams;
     let platform = 'web';
     let debug = import.meta.env.DEV;
@@ -33,13 +36,14 @@ const root = ReactDOM.createRoot(document.getElementById('root')!);
       debug = import.meta.env.DEV;
     }
 
-    // Configure all application dependencies.
+    // Step 3: Initialize SDK (after mock environment is set up)
     await init({
       debug,
       eruda: debug && ['ios', 'android'].includes(platform),
       mockForMacOS: platform === 'macos' || platform === 'web',
     });
 
+    // Step 4: Render app (after SDK is initialized)
     root.render(
       <StrictMode>
         <Root/>

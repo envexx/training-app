@@ -197,6 +197,18 @@ Output akan berada di folder `dist/`.
 2. Connect repository ke Vercel/Netlify
 3. Deploy otomatis akan berjalan
 
+## 📱 Setup Telegram Bot
+
+Untuk mengakses aplikasi dari Telegram, ikuti panduan lengkap di **[TELEGRAM_SETUP.md](./TELEGRAM_SETUP.md)**.
+
+**Quick Start:**
+1. Buat bot di [@BotFather](https://t.me/BotFather)
+2. Deploy aplikasi ke Vercel/Netlify (pastikan HTTPS)
+3. Konfigurasi Mini App di BotFather dengan URL aplikasi
+4. Test aplikasi dari Telegram
+
+Lihat **[TELEGRAM_SETUP.md](./TELEGRAM_SETUP.md)** untuk instruksi detail.
+
 ## 📄 License
 
 MIT License
