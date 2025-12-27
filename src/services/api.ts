@@ -133,10 +133,10 @@ export const authAPI = {
     });
     const data = await handleResponse<{
       success: boolean;
-      data: { token: string; user: any };
+      data?: { token: string; user: any };
     }>(response);
     
-    if (data.success && data.data.token) {
+    if (data.success && data.data && data.data.token) {
       setToken(data.data.token);
       setUserData(data.data.user);
     }

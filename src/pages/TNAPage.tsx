@@ -58,7 +58,7 @@ export const TNAPage: FC = () => {
     navigate(`/form-tna?terapisId=${tna.terapisId}&id=${tna.id}`);
   };
 
-  const handleDelete = async (id: string, terapisId: string) => {
+  const handleDelete = async (id: string, _terapisId: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus form TNA ini?')) {
       return;
     }

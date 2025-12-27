@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { authAPI, getUserData, setToken, setUserData, removeToken } from '@/services/api';
+import { authAPI, getUserData, setUserData, removeToken } from '@/services/api';
 
 interface User {
   id: string;
@@ -56,8 +56,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (username: string, password: string) => {
     try {
       const response = await authAPI.login(username, password);
-      if (response.success && response.data.user) {
-        setUser(response.data.user);
+      if (response.success && response.data && (response.data as any).user) {
+        setUser((response.data as any).user);
       } else {
         throw new Error('Login failed');
       }

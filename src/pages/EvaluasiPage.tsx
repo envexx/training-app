@@ -60,7 +60,7 @@ export const EvaluasiPage: FC = () => {
     navigate(`/form-evaluasi?terapisId=${evaluasi.terapisId}&id=${evaluasi.id}`);
   };
 
-  const handleDelete = async (id: string, terapisId: string) => {
+  const handleDelete = async (id: string, _terapisId: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus form Evaluasi ini?')) {
       return;
     }

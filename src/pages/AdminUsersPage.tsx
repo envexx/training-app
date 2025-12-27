@@ -1,5 +1,4 @@
 import { useState, useEffect, type FC } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { Page } from '@/components/Page.tsx';
 import { PageHeader } from '@/components/PageHeader/PageHeader.tsx';
@@ -19,7 +18,6 @@ interface User {
 }
 
 export const AdminUsersPage: FC = () => {
-  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

@@ -67,7 +67,7 @@ export const DataTerapisPage: FC = () => {
           endKontrak: t.endKontrak || t.end_kontrak,
         }));
         console.log('Loaded terapis:', terapisList.length, 'items');
-        console.log('Cabang values:', terapisList.map(t => ({ nama: t.nama, cabang: t.cabang })));
+        console.log('Cabang values:', terapisList.map((t: Terapis) => ({ nama: t.nama, cabang: t.cabang })));
         setTerapisList(terapisList);
       }
     } catch (err: any) {
