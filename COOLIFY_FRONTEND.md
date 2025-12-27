@@ -17,7 +17,7 @@ Untuk **Frontend**, Base Directory harus: `reactjs-template` (BUKAN `reactjs-tem
 
 ## ⚙️ Environment Variables
 
-Tambahkan environment variables berikut:
+**⚠️ PENTING**: Tambahkan environment variable berikut di Coolify:
 
 ```env
 VITE_API_URL=https://your-backend-domain.com
@@ -25,7 +25,10 @@ VITE_API_URL=https://your-backend-domain.com
 
 **Catatan**: 
 - Ganti `https://your-backend-domain.com` dengan URL backend yang sudah di-deploy
+- Contoh: `https://kkoo004wcswswsgskcs004w4.31.97.67.141.sslip.io`
+- **WAJIB** menggunakan `https://` (bukan `http://`)
 - Frontend akan build sebagai static site dan di-serve oleh Coolify
+- **Setelah menambahkan env var, HARUS redeploy** agar perubahan berlaku
 
 ## 🔧 Build Process
 

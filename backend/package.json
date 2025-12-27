@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
+    "start:with-migrate": "sh start.sh",
     "migrate": "node scripts/migrate.js",
     "create-admin": "node src/database/create-admin.js",
     "seed:admin": "node src/database/seed-admin.js"

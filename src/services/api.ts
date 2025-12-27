@@ -2,9 +2,22 @@
  * API Service untuk komunikasi dengan backend
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Get API URL from environment variable
+// In production, this should be set via VITE_API_URL environment variable
+let API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+// Remove trailing slash if present
+if (API_BASE_URL.endsWith('/')) {
+  API_BASE_URL = API_BASE_URL.slice(0, -1);
+}
+
 const API_VERSION = 'v1';
 const API_URL = `${API_BASE_URL}/api/${API_VERSION}`;
+
+// Log API URL for debugging (both dev and production)
+console.log('[API Config] API_BASE_URL:', API_BASE_URL);
+console.log('[API Config] API_URL:', API_URL);
+console.log('[API Config] VITE_API_URL env:', import.meta.env.VITE_API_URL);
 
 // API Response Type
 export interface APIResponse<T = any> {
