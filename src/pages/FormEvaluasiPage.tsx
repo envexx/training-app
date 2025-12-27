@@ -4,7 +4,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Page } from '@/components/Page.tsx';
 import { PageHeader } from '@/components/PageHeader/PageHeader.tsx';
 import { BottomNavigation } from '@/components/BottomNavigation/BottomNavigation.tsx';
-import { dataStore, type EvaluasiData } from '@/store/dataStore';
+import { terapisAPI, evaluasiAPI } from '@/services/api';
+import { formatDateForInput } from '@/utils/dateUtils';
 
 import './FormEvaluasiPage.css';
 
@@ -65,17 +66,33 @@ export const FormEvaluasiPage: FC = () => {
 
   // Load terapis list
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('terapis_list') || '[]');
-    setTerapisList(stored);
-    
-    // If terapisId from URL, set selected terapis
-    if (terapisIdParam) {
-      const found = stored.find((t: Terapis) => t.id === terapisIdParam);
-      if (found) {
-        setSelectedTerapis(found);
-        setTerapisId(terapisIdParam);
+    const loadTerapis = async () => {
+      try {
+        const response = await terapisAPI.getAll();
+        if (response.success && response.data.terapis) {
+          const terapis = response.data.terapis.map((t: any) => ({
+            id: t.id,
+            nama: t.nama,
+            lulusan: t.lulusan,
+          }));
+          setTerapisList(terapis);
+          
+          // If terapisId from URL, set selected terapis
+          if (terapisIdParam) {
+            const found = terapis.find((t: Terapis) => t.id === terapisIdParam);
+            if (found) {
+              setSelectedTerapis(found);
+              setTerapisId(terapisIdParam);
+            }
+          }
+        }
+      } catch (err: any) {
+        console.error('Error loading terapis:', err);
+        alert('Gagal memuat data terapis');
       }
-    }
+    };
+    
+    loadTerapis();
   }, [terapisIdParam]);
 
   // Load existing data if editing
@@ -84,55 +101,85 @@ export const FormEvaluasiPage: FC = () => {
       return;
     }
 
-    // Load existing Evaluasi data if editing
-    if (evaluasiId) {
-      const existingEvaluasi = dataStore.getAllEvaluasi().find((e) => e.id === evaluasiId);
-      if (existingEvaluasi && existingEvaluasi.terapisId === terapisId) {
-        setFormData({
-          noDokumen: existingEvaluasi.noDokumen,
-          revisi: existingEvaluasi.revisi,
-          tglBerlaku: existingEvaluasi.tglBerlaku,
-          nama: existingEvaluasi.nama,
-          departemen: existingEvaluasi.departemen,
-          divisi: existingEvaluasi.divisi,
-          jabatan: existingEvaluasi.jabatan,
-          tglPelaksanaan: existingEvaluasi.tglPelaksanaan,
-          sifatPelatihan: existingEvaluasi.sifatPelatihan,
-          namaPelatihan: existingEvaluasi.namaPelatihan,
-          tempat: existingEvaluasi.tempat,
-          tanggal: existingEvaluasi.tanggal,
-          yangMenilai: existingEvaluasi.yangMenilai,
-        });
-        setTujuanPelatihan(existingEvaluasi.tujuanPelatihan);
-        setProficiencyRows(existingEvaluasi.proficiencyRows);
-        setHarapanKomentar(existingEvaluasi.harapanKomentar);
-      }
-    } else {
-      // Check if terapis already has Evaluasi
-      const existingEvaluasi = dataStore.getEvaluasiByTerapis(terapisId);
-      if (existingEvaluasi) {
-        if (confirm('Terapis ini sudah memiliki data Evaluasi. Apakah Anda ingin mengedit data yang ada?')) {
+    const loadEvaluasiData = async () => {
+      try {
+        const response = await evaluasiAPI.getByTerapisId(terapisId);
+        if (response.success && response.data) {
+          const evaluasi = response.data;
+          
+          // If editing specific Evaluasi, check if ID matches
+          if (evaluasiId && evaluasi.id !== evaluasiId) {
+            return; // Different Evaluasi, don't load
+          }
+          
+          // Load Evaluasi data
           setFormData({
-            noDokumen: existingEvaluasi.noDokumen,
-            revisi: existingEvaluasi.revisi,
-            tglBerlaku: existingEvaluasi.tglBerlaku,
-            nama: existingEvaluasi.nama,
-            departemen: existingEvaluasi.departemen,
-            divisi: existingEvaluasi.divisi,
-            jabatan: existingEvaluasi.jabatan,
-            tglPelaksanaan: existingEvaluasi.tglPelaksanaan,
-            sifatPelatihan: existingEvaluasi.sifatPelatihan,
-            namaPelatihan: existingEvaluasi.namaPelatihan,
-            tempat: existingEvaluasi.tempat,
-            tanggal: existingEvaluasi.tanggal,
-            yangMenilai: existingEvaluasi.yangMenilai,
+            noDokumen: evaluasi.noDokumen || '',
+            revisi: evaluasi.revisi || '0',
+            tglBerlaku: formatDateForInput(evaluasi.tglBerlaku),
+            nama: evaluasi.nama || '',
+            departemen: evaluasi.departemen || '',
+            divisi: evaluasi.divisi || '',
+            jabatan: evaluasi.jabatan || '',
+            tglPelaksanaan: formatDateForInput(evaluasi.tglPelaksanaan),
+            sifatPelatihan: evaluasi.sifatPelatihan || {
+              general: false,
+              technical: false,
+              managerial: false,
+            },
+            namaPelatihan: evaluasi.namaPelatihan || '',
+            tempat: evaluasi.tempat || 'Mojokerto',
+            tanggal: formatDateForInput(evaluasi.tanggal),
+            yangMenilai: evaluasi.yangMenilai || '',
           });
-          setTujuanPelatihan(existingEvaluasi.tujuanPelatihan);
-          setProficiencyRows(existingEvaluasi.proficiencyRows);
-          setHarapanKomentar(existingEvaluasi.harapanKomentar);
+          
+          // Load tujuan pelatihan
+          if (evaluasi.tujuanPelatihan && Array.isArray(evaluasi.tujuanPelatihan)) {
+            const tujuan = [...evaluasi.tujuanPelatihan];
+            while (tujuan.length < 5) tujuan.push('');
+            setTujuanPelatihan(tujuan.slice(0, 5));
+          }
+          
+          // Load proficiency rows
+          if (evaluasi.proficiencyRows && Array.isArray(evaluasi.proficiencyRows)) {
+            const rows = evaluasi.proficiencyRows.map((row: any, index: number) => ({
+              id: (index + 1).toString(),
+              pengetahuan: row.pengetahuan || '',
+              keterampilan: row.keterampilan || '',
+              sebelum: row.sebelum || '',
+              sesudah: row.sesudah || '',
+            }));
+            while (rows.length < 5) {
+              rows.push({
+                id: (rows.length + 1).toString(),
+                pengetahuan: '',
+                keterampilan: '',
+                sebelum: '',
+                sesudah: '',
+              });
+            }
+            setProficiencyRows(rows.slice(0, 5));
+          }
+          
+          // Load harapan komentar
+          if (evaluasi.harapanKomentar && Array.isArray(evaluasi.harapanKomentar)) {
+            const harapan = [...evaluasi.harapanKomentar];
+            while (harapan.length < 5) harapan.push('');
+            setHarapanKomentar(harapan.slice(0, 5));
+          }
+        } else if (!evaluasiId) {
+          // No existing Evaluasi, show confirmation if user wants to create new
+          // (This is handled in handleSelectTerapis)
+        }
+      } catch (err: any) {
+        // Evaluasi not found is OK for new Evaluasi
+        if (evaluasiId) {
+          console.error('Error loading Evaluasi:', err);
         }
       }
-    }
+    };
+
+    loadEvaluasiData();
   }, [terapisId, evaluasiId]);
 
   const handleSearch = (query: string) => {
@@ -140,34 +187,74 @@ export const FormEvaluasiPage: FC = () => {
     setShowSearchResults(query.length > 0);
   };
 
-  const handleSelectTerapis = (terapis: Terapis) => {
+  const handleSelectTerapis = async (terapis: Terapis) => {
     setSelectedTerapis(terapis);
     setTerapisId(terapis.id);
     setSearchQuery('');
     setShowSearchResults(false);
     
     // Check if terapis already has Evaluasi
-    const existingEvaluasi = dataStore.getEvaluasiByTerapis(terapis.id);
-    if (existingEvaluasi && !evaluasiId) {
-      if (confirm('Terapis ini sudah memiliki data Evaluasi. Apakah Anda ingin mengedit data yang ada?')) {
-        setFormData({
-          noDokumen: existingEvaluasi.noDokumen,
-          revisi: existingEvaluasi.revisi,
-          tglBerlaku: existingEvaluasi.tglBerlaku,
-          nama: existingEvaluasi.nama,
-          departemen: existingEvaluasi.departemen,
-          divisi: existingEvaluasi.divisi,
-          jabatan: existingEvaluasi.jabatan,
-          tglPelaksanaan: existingEvaluasi.tglPelaksanaan,
-          sifatPelatihan: existingEvaluasi.sifatPelatihan,
-          namaPelatihan: existingEvaluasi.namaPelatihan,
-          tempat: existingEvaluasi.tempat,
-          tanggal: existingEvaluasi.tanggal,
-          yangMenilai: existingEvaluasi.yangMenilai,
-        });
-        setTujuanPelatihan(existingEvaluasi.tujuanPelatihan);
-        setProficiencyRows(existingEvaluasi.proficiencyRows);
-        setHarapanKomentar(existingEvaluasi.harapanKomentar);
+    if (!evaluasiId) {
+      try {
+        const response = await evaluasiAPI.getByTerapisId(terapis.id);
+        if (response.success && response.data) {
+          const evaluasi = response.data;
+          if (confirm('Terapis ini sudah memiliki data Evaluasi. Apakah Anda ingin mengedit data yang ada?')) {
+            setFormData({
+              noDokumen: evaluasi.noDokumen || '',
+              revisi: evaluasi.revisi || '0',
+              tglBerlaku: formatDateForInput(evaluasi.tglBerlaku),
+              nama: evaluasi.nama || '',
+              departemen: evaluasi.departemen || '',
+              divisi: evaluasi.divisi || '',
+              jabatan: evaluasi.jabatan || '',
+              tglPelaksanaan: formatDateForInput(evaluasi.tglPelaksanaan),
+              sifatPelatihan: evaluasi.sifatPelatihan || {
+                general: false,
+                technical: false,
+                managerial: false,
+              },
+              namaPelatihan: evaluasi.namaPelatihan || '',
+              tempat: evaluasi.tempat || 'Mojokerto',
+              tanggal: formatDateForInput(evaluasi.tanggal),
+              yangMenilai: evaluasi.yangMenilai || '',
+            });
+            
+            if (evaluasi.tujuanPelatihan && Array.isArray(evaluasi.tujuanPelatihan)) {
+              const tujuan = [...evaluasi.tujuanPelatihan];
+              while (tujuan.length < 5) tujuan.push('');
+              setTujuanPelatihan(tujuan.slice(0, 5));
+            }
+            
+            if (evaluasi.proficiencyRows && Array.isArray(evaluasi.proficiencyRows)) {
+              const rows = evaluasi.proficiencyRows.map((row: any, index: number) => ({
+                id: (index + 1).toString(),
+                pengetahuan: row.pengetahuan || '',
+                keterampilan: row.keterampilan || '',
+                sebelum: row.sebelum || '',
+                sesudah: row.sesudah || '',
+              }));
+              while (rows.length < 5) {
+                rows.push({
+                  id: (rows.length + 1).toString(),
+                  pengetahuan: '',
+                  keterampilan: '',
+                  sebelum: '',
+                  sesudah: '',
+                });
+              }
+              setProficiencyRows(rows.slice(0, 5));
+            }
+            
+            if (evaluasi.harapanKomentar && Array.isArray(evaluasi.harapanKomentar)) {
+              const harapan = [...evaluasi.harapanKomentar];
+              while (harapan.length < 5) harapan.push('');
+              setHarapanKomentar(harapan.slice(0, 5));
+            }
+          }
+        }
+      } catch (err) {
+        // No existing Evaluasi, continue with new form
       }
     }
   };
@@ -205,29 +292,57 @@ export const FormEvaluasiPage: FC = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!terapisId) return;
+    if (!terapisId) {
+      alert('Pilih terapis terlebih dahulu!');
+      return;
+    }
     
     if (!formData.noDokumen || !formData.tglBerlaku || !formData.nama || !formData.departemen) {
       alert('Mohon lengkapi semua field yang wajib diisi!');
       return;
     }
     
-    // Simpan ke dataStore
-    const evaluasiData: EvaluasiData = {
-      id: evaluasiId || Date.now().toString(),
-      terapisId: terapisId,
-      ...formData,
-      tujuanPelatihan,
-      proficiencyRows,
-      harapanKomentar,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      // Prepare data for API
+      const evaluasiData = {
+        terapisId: terapisId,
+        noDokumen: formData.noDokumen,
+        revisi: formData.revisi || '0',
+        tglBerlaku: formData.tglBerlaku,
+        nama: formData.nama,
+        departemen: formData.departemen,
+        divisi: formData.divisi || undefined,
+        jabatan: formData.jabatan || undefined,
+        tglPelaksanaan: formData.tglPelaksanaan || undefined,
+        sifatPelatihan: formData.sifatPelatihan,
+        namaPelatihan: formData.namaPelatihan || undefined,
+        tempat: formData.tempat || 'Mojokerto',
+        tanggal: formData.tanggal || undefined,
+        yangMenilai: formData.yangMenilai || undefined,
+        tujuanPelatihan: tujuanPelatihan.filter(t => t.trim()),
+        proficiencyRows: proficiencyRows.map(row => ({
+          pengetahuan: row.pengetahuan,
+          keterampilan: row.keterampilan,
+          sebelum: row.sebelum,
+          sesudah: row.sesudah,
+        })),
+        harapanKomentar: harapanKomentar.filter(h => h.trim()),
+      };
 
-    dataStore.saveEvaluasi(evaluasiData);
-    alert('Form Evaluasi berhasil disimpan!');
-    navigate(`/detail-terapis?id=${terapisId}`);
+      // If editing, include ID
+      if (evaluasiId) {
+        (evaluasiData as any).id = evaluasiId;
+      }
+
+      await evaluasiAPI.createOrUpdate(evaluasiData);
+      alert('Form Evaluasi berhasil disimpan!');
+      navigate(`/detail-terapis/${terapisId}`);
+    } catch (err: any) {
+      alert(err.message || 'Gagal menyimpan form Evaluasi');
+      console.error('Error saving Evaluasi:', err);
+    }
   };
 
   return (

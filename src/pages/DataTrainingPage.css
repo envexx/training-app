@@ -392,6 +392,41 @@
 }
 
 /* Responsive */
+.loading-state,
+.error-message {
+  text-align: center;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin-bottom: 16px;
+}
+
+.loading-state i {
+  font-size: 24px;
+  color: #34C759;
+  margin-bottom: 8px;
+}
+
+.loading-state p {
+  font-size: 14px;
+  color: #999;
+  margin: 0;
+}
+
+.error-message {
+  background: #FFEBEE;
+  border: 1px solid #FFCDD2;
+  color: #C62828;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.error-message i {
+  font-size: 16px;
+}
+
 @media (max-width: 768px) {
   .page-content {
     padding: 16px;

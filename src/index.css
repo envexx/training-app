@@ -68,6 +68,9 @@ div:has(.spendly-dashboard) {
   border-radius: 0 !important;
   padding: 0 !important;
   margin: 0 !important;
+  background-clip: unset !important;
+  -webkit-background-clip: unset !important;
+  color: rgba(26, 26, 26, 1) !important;
 }
 
 .tgui-section__header,
@@ -79,9 +82,13 @@ div:has(.spendly-dashboard) {
 
 /* Remove any background-clip issues */
 .tgui-section,
-.tgui-section * {
+.tgui-section *,
+div[class^="tgui-"] {
   background-clip: unset !important;
   -webkit-background-clip: unset !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  color: rgba(26, 26, 26, 1) !important;
 }
 
 /* Ensure Section has clean styling like dashboard */
@@ -94,16 +101,21 @@ div:has(.spendly-dashboard) {
   border-radius: 0 !important;
   padding: 0 !important;
   margin: 0 0 16px 0 !important;
+  background-clip: unset !important;
+  -webkit-background-clip: unset !important;
+  color: rgba(26, 26, 26, 1) !important;
 }
 
 /* Section wrapper divs */
 div[class*="tgui"][class*="section"],
-div[class*="tgui-section"] {
+div[class*="tgui-section"],
+div[class^="tgui-"] {
   background: transparent !important;
   box-shadow: none !important;
   -webkit-box-shadow: none !important;
   background-clip: unset !important;
   -webkit-background-clip: unset !important;
+  color: rgba(26, 26, 26, 1) !important;
 }
 
 /* List component should also be clean */

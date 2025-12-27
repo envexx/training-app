@@ -135,12 +135,251 @@
   color: #1A1A1A;
 }
 
+/* Section Header Actions */
+.section-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.btn-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #7B68EE;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-add:hover {
+  background: #6A5ACD;
+  transform: translateY(-1px);
+}
+
+/* Search Input */
+.search-input-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  font-size: 16px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px 12px 44px;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Quicksand', sans-serif;
+  background: white;
+  color: #1A1A1A;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #7B68EE;
+  box-shadow: 0 0 0 3px rgba(123, 104, 238, 0.1);
+}
+
+/* TNA List */
+.tna-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tna-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s;
+}
+
+.tna-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.tna-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.tna-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7B68EE 0%, #9B7EE8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.tna-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tna-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin: 0 0 4px 0;
+}
+
+.tna-card-subtitle {
+  font-size: 13px;
+  color: #999;
+  margin: 0;
+}
+
+.tna-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: #F8F9FA;
+  border-radius: 8px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.detail-item i {
+  width: 16px;
+  color: #7B68EE;
+  font-size: 12px;
+}
+
+.tna-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  flex: 1;
+  min-width: 80px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-view {
+  background: #4A90E2;
+  color: white;
+}
+
+.btn-view:hover {
+  background: #357ABD;
+}
+
+.btn-edit {
+  background: #34C759;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #2AA84A;
+}
+
+.btn-delete {
+  background: #FF6B6B;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #E55555;
+}
+
+.loading-state,
+.error-state,
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.loading-state i,
+.error-state i,
+.empty-state i {
+  font-size: 48px;
+  color: #7B68EE;
+  margin-bottom: 16px;
+}
+
+.error-state i {
+  color: #FF6B6B;
+}
+
+.loading-state p,
+.error-state p,
+.empty-state p {
+  font-size: 14px;
+  color: #999;
+  margin: 0 0 16px 0;
+}
+
+.error-state p {
+  color: #C62828;
+}
+
 @media (max-width: 480px) {
   .page-content {
     padding: 16px;
   }
 
-  .category-grid {
-    grid-template-columns: 1fr;
+  .section-header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .btn-add {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tna-card-actions {
+    flex-direction: column;
+  }
+
+  .btn-action {
+    width: 100%;
   }
 }

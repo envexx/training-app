@@ -218,6 +218,40 @@
   margin-bottom: 20px;
 }
 
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.loading-state i,
+.error-state i {
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+.loading-state i {
+  color: #20B2AA;
+}
+
+.error-state i {
+  color: #FF6B6B;
+}
+
+.loading-state p,
+.error-state p {
+  font-size: 14px;
+  color: #999;
+  margin: 0 0 16px 0;
+}
+
+.error-state .btn {
+  margin-top: 16px;
+}
+
 @media (max-width: 768px) {
   .page-content {
     padding: 16px;

@@ -4,7 +4,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Page } from '@/components/Page.tsx';
 import { PageHeader } from '@/components/PageHeader/PageHeader.tsx';
 import { BottomNavigation } from '@/components/BottomNavigation/BottomNavigation.tsx';
-import { dataStore, type TNAData } from '@/store/dataStore';
+import { terapisAPI, tnaAPI } from '@/services/api';
+import { formatDateForInput } from '@/utils/dateUtils';
 
 import './FormTNAPage.css';
 
@@ -63,17 +64,33 @@ export const FormTNAPage: FC = () => {
 
   // Load terapis list
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('terapis_list') || '[]');
-    setTerapisList(stored);
-    
-    // If terapisId from URL, set selected terapis
-    if (terapisIdParam) {
-      const found = stored.find((t: Terapis) => t.id === terapisIdParam);
-      if (found) {
-        setSelectedTerapis(found);
-        setTerapisId(terapisIdParam);
+    const loadTerapis = async () => {
+      try {
+        const response = await terapisAPI.getAll();
+        if (response.success && response.data.terapis) {
+          const terapis = response.data.terapis.map((t: any) => ({
+            id: t.id,
+            nama: t.nama,
+            lulusan: t.lulusan,
+          }));
+          setTerapisList(terapis);
+          
+          // If terapisId from URL, set selected terapis
+          if (terapisIdParam) {
+            const found = terapis.find((t: Terapis) => t.id === terapisIdParam);
+            if (found) {
+              setSelectedTerapis(found);
+              setTerapisId(terapisIdParam);
+            }
+          }
+        }
+      } catch (err: any) {
+        console.error('Error loading terapis:', err);
+        alert('Gagal memuat data terapis');
       }
-    }
+    };
+    
+    loadTerapis();
   }, [terapisIdParam]);
 
   // Load existing data if editing
@@ -82,37 +99,69 @@ export const FormTNAPage: FC = () => {
       return;
     }
 
-    // Load existing TNA data if editing
-    if (tnaId) {
-      const existingTNA = dataStore.getAllTNA().find((t) => t.id === tnaId);
-      if (existingTNA && existingTNA.terapisId === terapisId) {
-        setFormData({
-          noDokumen: existingTNA.noDokumen,
-          revisi: existingTNA.revisi,
-          tglBerlaku: existingTNA.tglBerlaku,
-          unit: existingTNA.unit,
-          departement: existingTNA.departement,
-        });
-        setTrainingRows(existingTNA.trainingRows);
-        setApprovalData(existingTNA.approvalData);
-      }
-    } else {
-      // Check if terapis already has TNA
-      const existingTNA = dataStore.getTNAByTerapis(terapisId);
-      if (existingTNA) {
-        if (confirm('Terapis ini sudah memiliki data TNA. Apakah Anda ingin mengedit data yang ada?')) {
+    const loadTNAData = async () => {
+      try {
+        const response = await tnaAPI.getByTerapisId(terapisId);
+        if (response.success && response.data) {
+          // Backend returns: { success: true, data: { id, terapisId, ... } }
+          const tna = response.data;
+          
+          // If editing specific TNA, check if ID matches
+          if (tnaId && tna.id !== tnaId) {
+            return; // Different TNA, don't load
+          }
+          
+          // Load TNA data
           setFormData({
-            noDokumen: existingTNA.noDokumen,
-            revisi: existingTNA.revisi,
-            tglBerlaku: existingTNA.tglBerlaku,
-            unit: existingTNA.unit,
-            departement: existingTNA.departement,
+            noDokumen: tna.no_dokumen || tna.noDokumen || '',
+            revisi: tna.revisi || '0',
+            tglBerlaku: formatDateForInput(tna.tgl_berlaku || tna.tglBerlaku),
+            unit: tna.unit || '',
+            departement: tna.departement || '',
           });
-          setTrainingRows(existingTNA.trainingRows);
-          setApprovalData(existingTNA.approvalData);
+          
+          // Load training rows
+          if (tna.trainingRows) {
+            const rows = tna.trainingRows.map((row: any, index: number) => ({
+              id: row.id || (index + 1).toString(),
+              jenisTopik: row.jenis_topik || row.jenisTopik || '',
+              alasan: row.alasan || '',
+              peserta: row.peserta || '',
+              rencanaPelaksanaan: row.rencana_pelaksanaan || row.rencanaPelaksanaan || '',
+              budgetBiaya: row.budget_biaya || row.budgetBiaya || '',
+            }));
+            setTrainingRows(rows.length > 0 ? rows : [{
+              id: '1',
+              jenisTopik: '',
+              alasan: '',
+              peserta: '',
+              rencanaPelaksanaan: '',
+              budgetBiaya: '',
+            }]);
+          }
+          
+          // Load approval data
+          if (tna.approval) {
+            setApprovalData({
+              diajukanOleh: tna.approval.diajukan_oleh || tna.approval.diajukanOleh || '',
+              direviewOleh: tna.approval.direview_oleh || tna.approval.direviewOleh || '',
+              disetujuiOleh1: tna.approval.disetujui_oleh_1 || tna.approval.disetujuiOleh1 || '',
+              disetujuiOleh2: tna.approval.disetujui_oleh_2 || tna.approval.disetujuiOleh2 || '',
+            });
+          }
+        } else if (!tnaId) {
+          // No existing TNA, show confirmation if user wants to create new
+          // (This is handled in handleSelectTerapis)
+        }
+      } catch (err: any) {
+        // TNA not found is OK for new TNA
+        if (tnaId) {
+          console.error('Error loading TNA:', err);
         }
       }
-    }
+    };
+
+    loadTNAData();
   }, [terapisId, tnaId]);
 
   const handleSearch = (query: string) => {
@@ -120,25 +169,60 @@ export const FormTNAPage: FC = () => {
     setShowSearchResults(query.length > 0);
   };
 
-  const handleSelectTerapis = (terapis: Terapis) => {
+  const handleSelectTerapis = async (terapis: Terapis) => {
     setSelectedTerapis(terapis);
     setTerapisId(terapis.id);
     setSearchQuery('');
     setShowSearchResults(false);
     
     // Check if terapis already has TNA
-    const existingTNA = dataStore.getTNAByTerapis(terapis.id);
-    if (existingTNA && !tnaId) {
-      if (confirm('Terapis ini sudah memiliki data TNA. Apakah Anda ingin mengedit data yang ada?')) {
-        setFormData({
-          noDokumen: existingTNA.noDokumen,
-          revisi: existingTNA.revisi,
-          tglBerlaku: existingTNA.tglBerlaku,
-          unit: existingTNA.unit,
-          departement: existingTNA.departement,
-        });
-        setTrainingRows(existingTNA.trainingRows);
-        setApprovalData(existingTNA.approvalData);
+    if (!tnaId) {
+      try {
+        const response = await tnaAPI.getByTerapisId(terapis.id);
+        if (response.success && response.data) {
+          // Backend returns: { success: true, data: { id, terapisId, ... } }
+          const tna = response.data;
+          if (confirm('Terapis ini sudah memiliki data TNA. Apakah Anda ingin mengedit data yang ada?')) {
+            setFormData({
+              noDokumen: tna.no_dokumen || tna.noDokumen || '',
+              revisi: tna.revisi || '0',
+              tglBerlaku: formatDateForInput(tna.tgl_berlaku || tna.tglBerlaku),
+              unit: tna.unit || '',
+              departement: tna.departement || '',
+            });
+            
+            if (tna.trainingRows) {
+              const rows = tna.trainingRows.map((row: any, index: number) => ({
+                id: row.id || (index + 1).toString(),
+                jenisTopik: row.jenis_topik || row.jenisTopik || '',
+                alasan: row.alasan || '',
+                peserta: row.peserta || '',
+                rencanaPelaksanaan: row.rencana_pelaksanaan || row.rencanaPelaksanaan || '',
+                budgetBiaya: row.budget_biaya || row.budgetBiaya || '',
+              }));
+              setTrainingRows(rows.length > 0 ? rows : [{
+                id: '1',
+                jenisTopik: '',
+                alasan: '',
+                peserta: '',
+                rencanaPelaksanaan: '',
+                budgetBiaya: '',
+              }]);
+            }
+            
+            if (tna.approvalData) {
+              const approval = tna.approvalData;
+              setApprovalData({
+                diajukanOleh: approval.diajukan_oleh || approval.diajukanOleh || '',
+                direviewOleh: approval.direview_oleh || approval.direviewOleh || '',
+                disetujuiOleh1: approval.disetujui_oleh_1 || approval.disetujuiOleh1 || '',
+                disetujuiOleh2: approval.disetujui_oleh_2 || approval.disetujuiOleh2 || '',
+              });
+            }
+          }
+        }
+      } catch (err) {
+        // No existing TNA, continue with new form
       }
     }
   };
@@ -174,29 +258,60 @@ export const FormTNAPage: FC = () => {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!terapisId) return;
+    if (!terapisId) {
+      alert('Pilih terapis terlebih dahulu!');
+      return;
+    }
 
     // Validasi
     if (!formData.noDokumen || !formData.tglBerlaku || !formData.unit || !formData.departement) {
       alert('Mohon lengkapi semua field yang wajib diisi!');
       return;
     }
-    
-    // Simpan ke dataStore
-    const tnaData: TNAData = {
-      id: tnaId || Date.now().toString(),
-      terapisId: terapisId,
-      ...formData,
-      trainingRows,
-      approvalData,
-      createdAt: new Date().toISOString(),
-    };
 
-    dataStore.saveTNA(tnaData);
-    alert('Form TNA berhasil disimpan!');
-    navigate(`/detail-terapis?id=${terapisId}`);
+    if (trainingRows.length === 0 || trainingRows.some(row => !row.jenisTopik.trim())) {
+      alert('Minimal harus ada 1 baris training dengan Jenis/Topik Training yang diisi!');
+      return;
+    }
+    
+    try {
+      // Prepare data for API (backend expects approvalData, not approval)
+      const tnaData = {
+        terapisId: terapisId,
+        noDokumen: formData.noDokumen,
+        revisi: formData.revisi || '0',
+        tglBerlaku: formData.tglBerlaku,
+        unit: formData.unit,
+        departement: formData.departement,
+        trainingRows: trainingRows.map(row => ({
+          jenisTopik: row.jenisTopik,
+          alasan: row.alasan,
+          peserta: row.peserta,
+          rencanaPelaksanaan: row.rencanaPelaksanaan,
+          budgetBiaya: row.budgetBiaya,
+        })),
+        approvalData: {
+          diajukanOleh: approvalData.diajukanOleh,
+          direviewOleh: approvalData.direviewOleh,
+          disetujuiOleh1: approvalData.disetujuiOleh1,
+          disetujuiOleh2: approvalData.disetujuiOleh2,
+        },
+      };
+
+      // If editing, include ID
+      if (tnaId) {
+        (tnaData as any).id = tnaId;
+      }
+
+      await tnaAPI.createOrUpdate(tnaData);
+      alert('Form TNA berhasil disimpan!');
+      navigate(`/detail-terapis/${terapisId}`);
+    } catch (err: any) {
+      alert(err.message || 'Gagal menyimpan form TNA');
+      console.error('Error saving TNA:', err);
+    }
   };
 
   return (

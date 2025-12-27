@@ -3,6 +3,7 @@ import { useState, useEffect, Fragment, type FC } from 'react';
 import { Page } from '@/components/Page.tsx';
 import { PageHeader } from '@/components/PageHeader/PageHeader.tsx';
 import { BottomNavigation } from '@/components/BottomNavigation/BottomNavigation.tsx';
+import { trainingAPI } from '@/services/api';
 
 import './DataTrainingPage.css';
 
@@ -92,52 +93,44 @@ export const DataTrainingPage: FC = () => {
   });
 
   const [modules, setModules] = useState<TrainingModule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Load from localStorage
+  // Load from API
   useEffect(() => {
-    const stored = localStorage.getItem(`training_modules_${selectedYear}`);
-    if (stored) {
+    const loadModules = async () => {
       try {
-        const parsed = JSON.parse(stored);
-        // Convert weeks array back to Set
-        const modulesWithSets = parsed.map((m: any) => ({
-          ...m,
-          weeks: new Set(m.weeks || []),
-          year: m.year || selectedYear,
-        }));
-        setModules(modulesWithSets);
-      } catch {
-        // Ignore
-      }
-    } else {
-      // If no data for this year, check if there's old data without year
-      const oldStored = localStorage.getItem('training_modules');
-      if (oldStored) {
-        try {
-          const parsed = JSON.parse(oldStored);
-        const modulesWithSets = parsed.map((m: any) => ({
-          ...m,
-          weeks: new Set(m.weeks || []),
-          year: m.year || selectedYear,
-          createdAt: m.createdAt || new Date().toISOString(),
-        }));
+        setLoading(true);
+        setError('');
+        const response = await trainingAPI.getModules({ year: selectedYear });
+        if (response.success && response.data && (response.data as any).modules) {
+          const modulesData = (response.data as any).modules;
+          // Convert weeks array to Set for frontend
+          const modulesWithSets = modulesData.map((m: any) => ({
+            id: m.id,
+            category: m.category,
+            moduleName: m.moduleName,
+            durasi: m.durasi,
+            classField: m.classField,
+            trainer: m.trainer,
+            targetTrainee: m.targetTrainee,
+            weeks: new Set(m.weeks || []),
+            year: m.year || selectedYear,
+            createdAt: m.createdAt,
+            updatedAt: m.updatedAt,
+          }));
           setModules(modulesWithSets);
-        } catch {
-          // Ignore
         }
+      } catch (err: any) {
+        setError(err.message || 'Gagal memuat data training');
+        console.error('Error loading training modules:', err);
+      } finally {
+        setLoading(false);
       }
-    }
-  }, [selectedYear]);
+    };
 
-  // Save to localStorage
-  useEffect(() => {
-    const toStore = modules.map((m) => ({
-      ...m,
-      weeks: Array.from(m.weeks),
-      year: selectedYear,
-    }));
-    localStorage.setItem(`training_modules_${selectedYear}`, JSON.stringify(toStore));
-  }, [modules, selectedYear]);
+    loadModules();
+  }, [selectedYear]);
 
   // Helper functions untuk backend integration tersedia di DataTrainingPage.api.ts
   // Uncomment ketika backend sudah siap
@@ -178,65 +171,123 @@ export const DataTrainingPage: FC = () => {
     setShowForm(true);
   };
 
-  const handleDeleteModule = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus modul training ini?')) {
+  const handleDeleteModule = async (id: string) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus modul training ini?')) {
+      return;
+    }
+
+    try {
+      await trainingAPI.delete(id);
       setModules(modules.filter((m) => m.id !== id));
+      alert('Modul training berhasil dihapus');
+    } catch (err: any) {
+      alert(err.message || 'Gagal menghapus modul training');
+      console.error('Error deleting module:', err);
     }
   };
 
-  const handleSubmitForm = (e: React.FormEvent) => {
+  const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.moduleName.trim()) {
       alert('Nama modul training harus diisi!');
       return;
     }
 
-    if (editingModule) {
-      setModules(
-        modules.map((m) =>
-          m.id === editingModule.id
-            ? { ...m, ...formData }
-            : m
-        )
-      );
-    } else {
-      const newModule: TrainingModule = {
-        id: Date.now().toString(),
-        ...formData,
-        weeks: new Set(),
+    try {
+      const moduleData = {
+        category: formData.category,
+        moduleName: formData.moduleName,
+        durasi: formData.durasi,
+        classField: formData.classField,
+        trainer: formData.trainer,
+        targetTrainee: formData.targetTrainee,
         year: selectedYear,
-        createdAt: new Date().toISOString(),
+        weeks: editingModule ? Array.from(editingModule.weeks) : [],
       };
-      setModules([...modules, newModule]);
-      
-      // Example: For backend integration, you can call:
-      // await saveTrainingModule(moduleToAPI(newModule));
-    }
 
-    setShowForm(false);
-    setEditingModule(null);
+      if (editingModule) {
+        // Update existing module
+        await trainingAPI.update(editingModule.id, moduleData);
+        setModules(
+          modules.map((m) =>
+            m.id === editingModule.id
+              ? { ...m, ...formData, updatedAt: new Date().toISOString() }
+              : m
+          )
+        );
+        alert('Modul training berhasil diupdate');
+      } else {
+        // Create new module
+        const response = await trainingAPI.create(moduleData);
+        if (response.success && response.data) {
+          const data = response.data as any;
+          const newModule: TrainingModule = {
+            id: data.id || data.module?.id || Date.now().toString(),
+            ...formData,
+            weeks: new Set(),
+            year: selectedYear,
+            createdAt: data.createdAt || data.module?.createdAt || new Date().toISOString(),
+            updatedAt: data.updatedAt || data.module?.updatedAt,
+          };
+          setModules([...modules, newModule]);
+          alert('Modul training berhasil ditambahkan');
+        }
+      }
+
+      setShowForm(false);
+      setEditingModule(null);
+    } catch (err: any) {
+      alert(err.message || 'Gagal menyimpan modul training');
+      console.error('Error saving module:', err);
+    }
   };
 
-  const toggleWeek = (moduleId: string, week: number) => {
+  const toggleWeek = async (moduleId: string, week: number) => {
+    const module = modules.find(m => m.id === moduleId);
+    if (!module) return;
+
+    const newWeeks = new Set(module.weeks);
+    if (newWeeks.has(week)) {
+      newWeeks.delete(week);
+    } else {
+      newWeeks.add(week);
+    }
+
+    // Update local state immediately for better UX
     setModules(
       modules.map((m) => {
         if (m.id === moduleId) {
-          const newWeeks = new Set(m.weeks);
-          if (newWeeks.has(week)) {
-            newWeeks.delete(week);
-          } else {
-            newWeeks.add(week);
-          }
-          const updatedModule = { ...m, weeks: newWeeks, updatedAt: new Date().toISOString() };
-          
-          // Example: For backend integration, you can call:
-          // await updateTrainingModule(moduleToAPI(updatedModule));
-          
-          return updatedModule;
+          return { ...m, weeks: newWeeks, updatedAt: new Date().toISOString() };
         }
         return m;
       })
     );
+
+    // Update in backend
+    try {
+      await trainingAPI.update(moduleId, {
+        category: module.category,
+        moduleName: module.moduleName,
+        durasi: module.durasi,
+        classField: module.classField,
+        trainer: module.trainer,
+        targetTrainee: module.targetTrainee,
+        year: module.year,
+        weeks: Array.from(newWeeks), // Backend expects 'weeks', not 'scheduledWeeks'
+      });
+    } catch (err: any) {
+      console.error('Error updating week schedule:', err);
+      // Revert on error
+      setModules(
+        modules.map((m) => {
+          if (m.id === moduleId) {
+            return { ...m, weeks: module.weeks };
+          }
+          return m;
+        })
+      );
+      alert('Gagal memperbarui jadwal training');
+    }
   };
 
   const filteredModules = selectedCategory === 'ALL'
@@ -365,8 +416,21 @@ export const DataTrainingPage: FC = () => {
         />
 
         <div className="page-content">
-          {/* Calendar Navigation */}
-          <div className="menu-section">
+          {error && (
+            <div className="error-message" style={{ marginBottom: '16px' }}>
+              <i className="fas fa-exclamation-circle"></i> {error}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="loading-state">
+              <i className="fas fa-spinner fa-spin"></i>
+              <p>Memuat data training...</p>
+            </div>
+          ) : (
+            <>
+              {/* Calendar Navigation */}
+              <div className="menu-section">
             <div className="calendar-nav">
               <button className="btn-nav" onClick={() => setSelectedYear(selectedYear - 1)}>
                 <i className="fas fa-chevron-left"></i>
@@ -518,6 +582,8 @@ export const DataTrainingPage: FC = () => {
               </div>
             </div>
           </div>
+            </>
+          )}
         </div>
 
         <BottomNavigation />

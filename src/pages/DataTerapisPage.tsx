@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Page } from '@/components/Page.tsx';
 import { PageHeader } from '@/components/PageHeader/PageHeader.tsx';
 import { BottomNavigation } from '@/components/BottomNavigation/BottomNavigation.tsx';
-import { dataStore } from '@/store/dataStore';
+import { terapisAPI } from '@/services/api';
+import { formatDateForInput, formatDateLocale } from '@/utils/dateUtils';
 
 import './DataTerapisPage.css';
 
@@ -13,6 +14,7 @@ interface Terapis {
   nama: string;
   lulusan: string;
   tanggalRequirement: string;
+  cabang?: string;
   mulaiKontrak?: string;
   endKontrak?: string;
   alamat?: string;
@@ -20,43 +22,19 @@ interface Terapis {
   email?: string;
 }
 
-const STORAGE_KEY = 'terapis_list';
-
 export const DataTerapisPage: FC = () => {
   const navigate = useNavigate();
-
-  const loadTerapisList = (): Terapis[] => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch {
-      // Ignore
-    }
-    // Default data
-    return [
-      {
-        id: '1',
-        nama: 'Dr. Ahmad Fauzi',
-        lulusan: 'S1 Kedokteran',
-        tanggalRequirement: '2024-01-15',
-        mulaiKontrak: '2024-02-01',
-        endKontrak: '2025-01-31',
-        alamat: 'Jl. Sudirman No. 123',
-        noTelp: '081234567890',
-        email: 'ahmad@example.com',
-      },
-    ];
-  };
-
-  const [terapisList, setTerapisList] = useState<Terapis[]>(loadTerapisList());
+  const [terapisList, setTerapisList] = useState<Terapis[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [filterCabang, setFilterCabang] = useState<string>('');
   const [formData, setFormData] = useState<Partial<Terapis>>({
     nama: '',
     lulusan: '',
     tanggalRequirement: '',
+    cabang: '',
     mulaiKontrak: '',
     endKontrak: '',
     alamat: '',
@@ -64,12 +42,54 @@ export const DataTerapisPage: FC = () => {
     email: '',
   });
 
+  // Load terapis from API
+  const loadTerapis = async (cabangFilter?: string) => {
+    try {
+      setLoading(true);
+      setError('');
+      // Only send cabang parameter if it has a value
+      const params: any = {};
+      const filterValue = cabangFilter !== undefined ? cabangFilter : filterCabang;
+      console.log('loadTerapis called with filterCabang:', filterValue, 'Type:', typeof filterValue);
+      if (filterValue && filterValue.trim() !== '') {
+        params.cabang = filterValue.trim();
+        console.log('Adding cabang to params:', params.cabang);
+      }
+      console.log('Loading terapis with filter:', params);
+      const response = await terapisAPI.getAll(params);
+      if (response.success && response.data.terapis) {
+        // Ensure dates are properly formatted
+        const terapisList = response.data.terapis.map((t: any) => ({
+          ...t,
+          tanggalRequirement: t.tanggalRequirement || t.tanggal_requirement,
+          cabang: t.cabang,
+          mulaiKontrak: t.mulaiKontrak || t.mulai_kontrak,
+          endKontrak: t.endKontrak || t.end_kontrak,
+        }));
+        console.log('Loaded terapis:', terapisList.length, 'items');
+        console.log('Cabang values:', terapisList.map(t => ({ nama: t.nama, cabang: t.cabang })));
+        setTerapisList(terapisList);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Gagal memuat data terapis');
+      console.error('Error loading terapis:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    console.log('useEffect triggered, filterCabang:', filterCabang);
+    loadTerapis(filterCabang);
+  }, [filterCabang]);
+
   const handleAdd = () => {
     setEditingId(null);
     setFormData({
       nama: '',
       lulusan: '',
       tanggalRequirement: '',
+      cabang: '',
       mulaiKontrak: '',
       endKontrak: '',
       alamat: '',
@@ -84,9 +104,10 @@ export const DataTerapisPage: FC = () => {
     setFormData({
       nama: terapis.nama,
       lulusan: terapis.lulusan,
-      tanggalRequirement: terapis.tanggalRequirement,
-      mulaiKontrak: terapis.mulaiKontrak || '',
-      endKontrak: terapis.endKontrak || '',
+      tanggalRequirement: formatDateForInput(terapis.tanggalRequirement),
+      cabang: terapis.cabang || '',
+      mulaiKontrak: formatDateForInput(terapis.mulaiKontrak),
+      endKontrak: formatDateForInput(terapis.endKontrak),
       alamat: terapis.alamat || '',
       noTelp: terapis.noTelp || '',
       email: terapis.email || '',
@@ -94,27 +115,23 @@ export const DataTerapisPage: FC = () => {
     setShowForm(true);
   };
 
-  // Save to localStorage whenever terapisList changes
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(terapisList));
-  }, [terapisList]);
+  const handleDelete = async (id: string) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus data terapis ini?')) {
+      return;
+    }
 
-  const handleDelete = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus data terapis ini?')) {
-      setTerapisList(terapisList.filter((t) => t.id !== id));
-      // Also delete related TNA and Evaluasi
-      const tnaData = dataStore.getTNAByTerapis(id);
-      if (tnaData) {
-        dataStore.deleteTNA(tnaData.id);
-      }
-      const evaluasiData = dataStore.getEvaluasiByTerapis(id);
-      if (evaluasiData) {
-        dataStore.deleteEvaluasi(evaluasiData.id);
-      }
+    try {
+      await terapisAPI.delete(id);
+      // Reload list after delete
+      await loadTerapis(filterCabang);
+      alert('Terapis berhasil dihapus');
+    } catch (err: any) {
+      alert(err.message || 'Gagal menghapus terapis');
+      console.error('Error deleting terapis:', err);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validasi required fields
@@ -123,52 +140,46 @@ export const DataTerapisPage: FC = () => {
       return;
     }
 
-    if (editingId) {
-      // Update existing
-      setTerapisList(
-        terapisList.map((t) =>
-          t.id === editingId
-            ? {
-                ...t,
-                ...formData,
-                mulaiKontrak: formData.mulaiKontrak || undefined,
-                endKontrak: formData.endKontrak || undefined,
-                alamat: formData.alamat || undefined,
-                noTelp: formData.noTelp || undefined,
-                email: formData.email || undefined,
-              }
-            : t
-        )
-      );
-    } else {
-      // Add new
-      const newTerapis: Terapis = {
-        id: Date.now().toString(),
-        nama: formData.nama!,
-        lulusan: formData.lulusan!,
-        tanggalRequirement: formData.tanggalRequirement!,
+    try {
+      const payload = {
+        nama: formData.nama,
+        lulusan: formData.lulusan,
+        tanggalRequirement: formData.tanggalRequirement,
+        cabang: formData.cabang || undefined,
         mulaiKontrak: formData.mulaiKontrak || undefined,
         endKontrak: formData.endKontrak || undefined,
         alamat: formData.alamat || undefined,
         noTelp: formData.noTelp || undefined,
         email: formData.email || undefined,
       };
-      const updatedList = [...terapisList, newTerapis];
-      setTerapisList(updatedList);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedList));
-    }
 
-    setShowForm(false);
-    setFormData({
-      nama: '',
-      lulusan: '',
-      tanggalRequirement: '',
-      mulaiKontrak: '',
-      endKontrak: '',
-      alamat: '',
-      noTelp: '',
-      email: '',
-    });
+      if (editingId) {
+        await terapisAPI.update(editingId, payload);
+        alert('Terapis berhasil diupdate');
+      } else {
+        await terapisAPI.create(payload);
+        alert('Terapis berhasil ditambahkan');
+      }
+
+      // Reload list
+      await loadTerapis(filterCabang);
+      
+      setShowForm(false);
+      setEditingId(null);
+      setFormData({
+        nama: '',
+        lulusan: '',
+        tanggalRequirement: '',
+        mulaiKontrak: '',
+        endKontrak: '',
+        alamat: '',
+        noTelp: '',
+        email: '',
+      });
+    } catch (err: any) {
+      alert(err.message || 'Gagal menyimpan terapis');
+      console.error('Error saving terapis:', err);
+    }
   };
 
   const handleCancel = () => {
@@ -178,6 +189,7 @@ export const DataTerapisPage: FC = () => {
       nama: '',
       lulusan: '',
       tanggalRequirement: '',
+      cabang: '',
       mulaiKontrak: '',
       endKontrak: '',
       alamat: '',
@@ -236,6 +248,19 @@ export const DataTerapisPage: FC = () => {
                   onChange={(e) => setFormData({ ...formData, tanggalRequirement: e.target.value })}
                   required
                 />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Cabang</label>
+                <select
+                  className="form-input"
+                  value={formData.cabang}
+                  onChange={(e) => setFormData({ ...formData, cabang: e.target.value })}
+                >
+                  <option value="">-- Pilih Cabang (Opsional) --</option>
+                  <option value="Batu Aji">Batu Aji</option>
+                  <option value="Tiban">Tiban</option>
+                </select>
               </div>
 
               <div className="form-group">
@@ -319,12 +344,41 @@ export const DataTerapisPage: FC = () => {
           <div className="menu-section">
             <div className="section-header-actions">
               <h2 className="section-title">Daftar Terapis</h2>
-              <button className="btn btn-primary btn-add" onClick={handleAdd}>
-                <i className="fas fa-plus"></i> Tambah Terapis
-              </button>
+              <div className="header-actions-group">
+                <select
+                  className="filter-select"
+                  value={filterCabang}
+                  onChange={(e) => {
+                    const newValue = e.target.value;
+                    console.log('Filter changed to:', newValue);
+                    setFilterCabang(newValue);
+                  }}
+                >
+                  <option value="">Semua Cabang</option>
+                  <option value="Batu Aji">Batu Aji</option>
+                  <option value="Tiban">Tiban</option>
+                </select>
+                <button className="btn btn-primary btn-add" onClick={handleAdd}>
+                  <i className="fas fa-plus"></i> Tambah Terapis
+                </button>
+              </div>
             </div>
 
-            {terapisList.length === 0 ? (
+            {error && (
+              <div className="error-message" style={{ marginBottom: '16px' }}>
+                <i className="fas fa-exclamation-circle"></i> {error}
+                <button onClick={() => loadTerapis(filterCabang)} style={{ marginLeft: '12px', padding: '4px 8px', fontSize: '12px' }}>
+                  Coba Lagi
+                </button>
+              </div>
+            )}
+
+            {loading ? (
+              <div className="loading-state">
+                <i className="fas fa-spinner fa-spin"></i>
+                <p>Memuat data...</p>
+              </div>
+            ) : terapisList.length === 0 ? (
               <div className="empty-state">
                 <i className="fas fa-user-md"></i>
                 <p>Belum ada data terapis</p>
@@ -348,18 +402,24 @@ export const DataTerapisPage: FC = () => {
                     <div className="terapis-details">
                       <div className="detail-item">
                         <i className="fas fa-calendar"></i>
-                        <span>Requirement: {new Date(terapis.tanggalRequirement).toLocaleDateString('id-ID')}</span>
+                        <span>Requirement: {formatDateLocale(terapis.tanggalRequirement)}</span>
                       </div>
+                      {terapis.cabang && (
+                        <div className="detail-item">
+                          <i className="fas fa-building"></i>
+                          <span>Cabang: {terapis.cabang}</span>
+                        </div>
+                      )}
                       {terapis.mulaiKontrak && (
                         <div className="detail-item">
                           <i className="fas fa-calendar-check"></i>
-                          <span>Mulai: {new Date(terapis.mulaiKontrak).toLocaleDateString('id-ID')}</span>
+                          <span>Mulai: {formatDateLocale(terapis.mulaiKontrak)}</span>
                         </div>
                       )}
                       {terapis.endKontrak && (
                         <div className="detail-item">
                           <i className="fas fa-calendar-times"></i>
-                          <span>End: {new Date(terapis.endKontrak).toLocaleDateString('id-ID')}</span>
+                          <span>End: {formatDateLocale(terapis.endKontrak)}</span>
                         </div>
                       )}
                       {terapis.noTelp && (
@@ -388,7 +448,7 @@ export const DataTerapisPage: FC = () => {
                     <div className="terapis-forms-section">
                       <button
                         className="btn btn-primary btn-full"
-                        onClick={() => navigate(`/detail-terapis?id=${terapis.id}`)}
+                        onClick={() => navigate(`/detail-terapis/${terapis.id}`)}
                       >
                         <i className="fas fa-eye"></i> Lihat Detail & Form
                       </button>

@@ -1,10 +1,11 @@
 import { useState, useEffect, type FC } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { Page } from '@/components/Page.tsx';
 import { PageHeader } from '@/components/PageHeader/PageHeader.tsx';
 import { BottomNavigation } from '@/components/BottomNavigation/BottomNavigation.tsx';
-import { dataStore } from '@/store/dataStore';
+import { terapisAPI, tnaAPI, evaluasiAPI } from '@/services/api';
+import { formatDateLocale } from '@/utils/dateUtils';
 
 import './DetailTerapisPage.css';
 
@@ -12,24 +13,29 @@ interface Terapis {
   id: string;
   nama: string;
   lulusan: string;
-  tanggalRequirement: string;
+  tanggal_requirement?: string;
+  tanggalRequirement?: string;
+  cabang?: string;
+  mulai_kontrak?: string;
   mulaiKontrak?: string;
+  end_kontrak?: string;
   endKontrak?: string;
   alamat?: string;
+  no_telp?: string;
   noTelp?: string;
   email?: string;
 }
 
-const STORAGE_KEY = 'terapis_list';
-
 export const DetailTerapisPage: FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const terapisId = searchParams.get('id');
+  const { id } = useParams<{ id: string }>();
+  const terapisId = id;
 
   const [terapis, setTerapis] = useState<Terapis | null>(null);
-  const [tnaData, setTnaData] = useState(dataStore.getTNAByTerapis(terapisId || ''));
-  const [evaluasiData, setEvaluasiData] = useState(dataStore.getEvaluasiByTerapis(terapisId || ''));
+  const [tnaData, setTnaData] = useState<any | null>(null);
+  const [evaluasiData, setEvaluasiData] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!terapisId) {
@@ -37,19 +43,58 @@ export const DetailTerapisPage: FC = () => {
       return;
     }
 
-    const terapisList: Terapis[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    const found = terapisList.find((t) => t.id === terapisId);
-    
-    if (!found) {
-      alert('Data terapis tidak ditemukan');
+    loadTerapisData();
+  }, [terapisId, navigate]);
+
+  const loadTerapisData = async () => {
+    if (!terapisId) {
       navigate('/data-terapis');
       return;
     }
 
-    setTerapis(found);
-    setTnaData(dataStore.getTNAByTerapis(terapisId));
-    setEvaluasiData(dataStore.getEvaluasiByTerapis(terapisId));
-  }, [terapisId, navigate]);
+    try {
+      setLoading(true);
+      setError('');
+
+      // Load terapis data
+      const terapisResponse = await terapisAPI.getById(terapisId);
+      if (terapisResponse.success && terapisResponse.data) {
+        // Backend returns: { success: true, data: { id, nama, ... } }
+        setTerapis(terapisResponse.data);
+      } else {
+        throw new Error('Data terapis tidak ditemukan');
+      }
+
+      // Load TNA data
+      try {
+        const tnaResponse = await tnaAPI.getByTerapisId(terapisId);
+        if (tnaResponse.success && tnaResponse.data) {
+          const tna = tnaResponse.data.tna || tnaResponse.data;
+          setTnaData(tna);
+        }
+      } catch (err) {
+        // TNA not found is OK
+        setTnaData(null);
+      }
+
+      // Load Evaluasi data
+      try {
+        const evaluasiResponse = await evaluasiAPI.getByTerapisId(terapisId);
+        if (evaluasiResponse.success && evaluasiResponse.data) {
+          const evaluasi = evaluasiResponse.data.evaluasi || evaluasiResponse.data;
+          setEvaluasiData(evaluasi);
+        }
+      } catch (err) {
+        // Evaluasi not found is OK
+        setEvaluasiData(null);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Gagal memuat data terapis');
+      console.error('Error loading terapis:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEditTerapis = () => {
     navigate(`/data-terapis?edit=${terapisId}`);
@@ -75,8 +120,51 @@ export const DetailTerapisPage: FC = () => {
     }
   };
 
-  if (!terapis) {
-    return null;
+  if (loading) {
+    return (
+      <Page>
+        <div className="page-wrapper">
+          <PageHeader
+            title="Detail Terapis"
+            subtitle="Memuat data..."
+            icon="fas fa-user-md"
+            iconColor="linear-gradient(135deg, #20B2AA 0%, #48D1CC 100%)"
+          />
+          <div className="page-content">
+            <div className="loading-state">
+              <i className="fas fa-spinner fa-spin"></i>
+              <p>Memuat data terapis...</p>
+            </div>
+          </div>
+          <BottomNavigation />
+        </div>
+      </Page>
+    );
+  }
+
+  if (!terapis || error) {
+    return (
+      <Page>
+        <div className="page-wrapper">
+          <PageHeader
+            title="Detail Terapis"
+            subtitle="Error"
+            icon="fas fa-user-md"
+            iconColor="linear-gradient(135deg, #20B2AA 0%, #48D1CC 100%)"
+          />
+          <div className="page-content">
+            <div className="error-state">
+              <i className="fas fa-exclamation-circle"></i>
+              <p>{error || 'Data terapis tidak ditemukan'}</p>
+              <button className="btn btn-primary" onClick={() => navigate('/data-terapis')}>
+                Kembali ke Data Terapis
+              </button>
+            </div>
+          </div>
+          <BottomNavigation />
+        </div>
+      </Page>
+    );
   }
 
   return (
@@ -113,24 +201,30 @@ export const DetailTerapisPage: FC = () => {
               <div className="terapis-detail-grid">
                 <div className="detail-grid-item">
                   <label>Tanggal Requirement</label>
-                  <div>{new Date(terapis.tanggalRequirement).toLocaleDateString('id-ID')}</div>
+                  <div>{formatDateLocale(terapis.tanggal_requirement || terapis.tanggalRequirement)}</div>
                 </div>
-                {terapis.mulaiKontrak && (
+                {terapis.cabang && (
+                  <div className="detail-grid-item">
+                    <label>Cabang</label>
+                    <div>{terapis.cabang}</div>
+                  </div>
+                )}
+                {(terapis.mulai_kontrak || terapis.mulaiKontrak) && (
                   <div className="detail-grid-item">
                     <label>Mulai Kontrak</label>
-                    <div>{new Date(terapis.mulaiKontrak).toLocaleDateString('id-ID')}</div>
+                    <div>{formatDateLocale(terapis.mulai_kontrak || terapis.mulaiKontrak)}</div>
                   </div>
                 )}
-                {terapis.endKontrak && (
+                {(terapis.end_kontrak || terapis.endKontrak) && (
                   <div className="detail-grid-item">
                     <label>End Kontrak</label>
-                    <div>{new Date(terapis.endKontrak).toLocaleDateString('id-ID')}</div>
+                    <div>{formatDateLocale(terapis.end_kontrak || terapis.endKontrak)}</div>
                   </div>
                 )}
-                {terapis.noTelp && (
+                {(terapis.no_telp || terapis.noTelp) && (
                   <div className="detail-grid-item">
                     <label>No. Telepon</label>
-                    <div>{terapis.noTelp}</div>
+                    <div>{terapis.no_telp || terapis.noTelp}</div>
                   </div>
                 )}
                 {terapis.email && (
@@ -169,7 +263,7 @@ export const DetailTerapisPage: FC = () => {
                 <div className="form-data-row">
                   <div className="form-data-item">
                     <label>No. Dokumen</label>
-                    <div>{tnaData.noDokumen}</div>
+                    <div>{tnaData.no_dokumen || tnaData.noDokumen}</div>
                   </div>
                   <div className="form-data-item">
                     <label>Revisi Ke-</label>
@@ -177,7 +271,7 @@ export const DetailTerapisPage: FC = () => {
                   </div>
                   <div className="form-data-item">
                     <label>Tgl. Berlaku</label>
-                    <div>{new Date(tnaData.tglBerlaku).toLocaleDateString('id-ID')}</div>
+                    <div>{new Date(tnaData.tgl_berlaku || tnaData.tglBerlaku || '').toLocaleDateString('id-ID')}</div>
                   </div>
                 </div>
                 <div className="form-data-row">
@@ -193,11 +287,11 @@ export const DetailTerapisPage: FC = () => {
                 <div className="form-data-summary">
                   <div className="summary-item">
                     <i className="fas fa-list"></i>
-                    <span>Total Training: {tnaData.trainingRows.length}</span>
+                    <span>Total Training: {(tnaData.training_rows || tnaData.trainingRows || []).length}</span>
                   </div>
                   <div className="summary-item">
                     <i className="fas fa-calendar"></i>
-                    <span>Dibuat: {new Date(tnaData.createdAt).toLocaleDateString('id-ID')}</span>
+                    <span>Dibuat: {new Date(tnaData.created_at || tnaData.createdAt || '').toLocaleDateString('id-ID')}</span>
                   </div>
                 </div>
               </div>
@@ -232,7 +326,7 @@ export const DetailTerapisPage: FC = () => {
                 <div className="form-data-row">
                   <div className="form-data-item">
                     <label>No. Dokumen</label>
-                    <div>{evaluasiData.noDokumen}</div>
+                    <div>{evaluasiData.no_dokumen || evaluasiData.noDokumen}</div>
                   </div>
                   <div className="form-data-item">
                     <label>Revisi Ke-</label>
@@ -240,33 +334,33 @@ export const DetailTerapisPage: FC = () => {
                   </div>
                   <div className="form-data-item">
                     <label>Tgl. Berlaku</label>
-                    <div>{new Date(evaluasiData.tglBerlaku).toLocaleDateString('id-ID')}</div>
+                    <div>{new Date(evaluasiData.tgl_berlaku || evaluasiData.tglBerlaku || '').toLocaleDateString('id-ID')}</div>
                   </div>
                 </div>
                 <div className="form-data-row">
                   <div className="form-data-item">
                     <label>Nama Pelatihan</label>
-                    <div>{evaluasiData.namaPelatihan || '-'}</div>
+                    <div>{evaluasiData.nama_pelatihan || evaluasiData.namaPelatihan || '-'}</div>
                   </div>
-                  {evaluasiData.tglPelaksanaan && (
+                  {(evaluasiData.tgl_pelaksanaan || evaluasiData.tglPelaksanaan) && (
                     <div className="form-data-item">
                       <label>Tgl. Pelaksanaan</label>
-                      <div>{new Date(evaluasiData.tglPelaksanaan).toLocaleDateString('id-ID')}</div>
+                      <div>{new Date(evaluasiData.tgl_pelaksanaan || evaluasiData.tglPelaksanaan).toLocaleDateString('id-ID')}</div>
                     </div>
                   )}
                 </div>
                 <div className="form-data-summary">
                   <div className="summary-item">
                     <i className="fas fa-list-check"></i>
-                    <span>Tujuan: {evaluasiData.tujuanPelatihan.filter((t) => t.trim()).length} item</span>
+                    <span>Tujuan: {(evaluasiData.tujuan_pelatihan || evaluasiData.tujuanPelatihan || []).filter((t: string) => t && t.trim()).length} item</span>
                   </div>
                   <div className="summary-item">
                     <i className="fas fa-chart-line"></i>
-                    <span>Proficiency: {evaluasiData.proficiencyRows.length} item</span>
+                    <span>Proficiency: {(evaluasiData.proficiency_rows || evaluasiData.proficiencyRows || []).length} item</span>
                   </div>
                   <div className="summary-item">
                     <i className="fas fa-calendar"></i>
-                    <span>Dibuat: {new Date(evaluasiData.createdAt).toLocaleDateString('id-ID')}</span>
+                    <span>Dibuat: {new Date(evaluasiData.created_at || evaluasiData.createdAt).toLocaleDateString('id-ID')}</span>
                   </div>
                 </div>
               </div>

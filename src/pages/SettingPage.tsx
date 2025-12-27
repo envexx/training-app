@@ -1,12 +1,23 @@
 import type { FC } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { Page } from '@/components/Page.tsx';
 import { PageHeader } from '@/components/PageHeader/PageHeader.tsx';
 import { BottomNavigation } from '@/components/BottomNavigation/BottomNavigation.tsx';
+import { useAuth } from '@/contexts/AuthContext';
 
 import './SettingPage.css';
 
 export const SettingPage: FC = () => {
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
+
+  const handleLogout = () => {
+    if (confirm('Apakah Anda yakin ingin logout?')) {
+      logout();
+      navigate('/login');
+    }
+  };
   return (
     <Page>
       <div className="page-wrapper">
@@ -18,6 +29,20 @@ export const SettingPage: FC = () => {
         />
 
         <div className="page-content">
+          {/* User Info Section */}
+          <div className="menu-section">
+            <div className="user-info-card">
+              <div className="user-avatar-large">
+                <i className="fas fa-user"></i>
+              </div>
+              <div className="user-info-content">
+                <h3 className="user-info-name">{user?.fullName || user?.username || 'User'}</h3>
+                <p className="user-info-role">{user?.roleName || 'User'}</p>
+                {user?.email && <p className="user-info-email">{user.email}</p>}
+              </div>
+            </div>
+          </div>
+
           <div className="menu-section">
             <h2 className="section-title">Akun</h2>
             <div className="menu-grid">
@@ -117,8 +142,8 @@ export const SettingPage: FC = () => {
                   <i className="fas fa-chevron-right"></i>
                 </div>
               </div>
-              <div className="menu-card">
-                <div className="menu-card-icon" style={{ backgroundColor: '#999' }}>
+              <div className="menu-card" onClick={handleLogout} style={{ cursor: 'pointer' }}>
+                <div className="menu-card-icon" style={{ backgroundColor: '#FF6B6B' }}>
                   <i className="fas fa-sign-out-alt"></i>
                 </div>
                 <div className="menu-card-content">
