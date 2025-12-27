@@ -6,6 +6,14 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const API_VERSION = 'v1';
 const API_URL = `${API_BASE_URL}/api/${API_VERSION}`;
 
+// API Response Type
+export interface APIResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
+
 // Get token from localStorage
 const getToken = (): string | null => {
   return localStorage.getItem('auth_token');
@@ -39,9 +47,9 @@ const apiFetch = async (
   options: RequestInit = {}
 ): Promise<Response> => {
   const token = getToken();
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string> || {}),
   };
 
   if (token) {
@@ -91,7 +99,7 @@ const apiFetch = async (
 };
 
 // Generic API response handler
-const handleResponse = async <T>(response: Response): Promise<T> => {
+const handleResponse = async <T = any>(response: Response): Promise<APIResponse<T>> => {
   let data;
   
   try {
@@ -147,12 +155,12 @@ export const authAPI = {
       method: 'POST',
       body: JSON.stringify(userData),
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   getMe: async () => {
     const response = await apiFetch('/auth/me');
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   changePassword: async (oldPassword: string, newPassword: string) => {
@@ -160,7 +168,7 @@ export const authAPI = {
       method: 'POST',
       body: JSON.stringify({ oldPassword, newPassword }),
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 };
 
@@ -184,12 +192,12 @@ export const terapisAPI = {
     console.log('API Call:', endpoint);
     console.log('Full params received:', params);
     const response = await apiFetch(endpoint);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   getById: async (id: string) => {
     const response = await apiFetch(`/terapis/${id}`);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   create: async (data: any) => {
@@ -197,7 +205,7 @@ export const terapisAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   update: async (id: string, data: any) => {
@@ -205,14 +213,14 @@ export const terapisAPI = {
       method: 'PUT',
       body: JSON.stringify(data),
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   delete: async (id: string) => {
     const response = await apiFetch(`/terapis/${id}`, {
       method: 'DELETE',
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 };
 
@@ -227,12 +235,12 @@ export const requirementAPI = {
     const queryString = queryParams.toString();
     const endpoint = `/requirement${queryString ? `?${queryString}` : ''}`;
     const response = await apiFetch(endpoint);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   getById: async (id: string) => {
     const response = await apiFetch(`/requirement/${id}`);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   create: async (data: any) => {
@@ -240,7 +248,7 @@ export const requirementAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   accept: async (id: string, cabang?: string) => {
@@ -248,14 +256,14 @@ export const requirementAPI = {
       method: 'POST',
       body: JSON.stringify({ cabang: cabang || null }),
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   reject: async (id: string) => {
     const response = await apiFetch(`/requirement/${id}`, {
       method: 'DELETE',
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 };
 
@@ -270,12 +278,12 @@ export const tnaAPI = {
     const queryString = queryParams.toString();
     const endpoint = `/tna${queryString ? `?${queryString}` : ''}`;
     const response = await apiFetch(endpoint);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   getByTerapisId: async (terapisId: string) => {
     const response = await apiFetch(`/tna/terapis/${terapisId}`);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   createOrUpdate: async (data: any) => {
@@ -283,14 +291,14 @@ export const tnaAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   delete: async (id: string) => {
     const response = await apiFetch(`/tna/${id}`, {
       method: 'DELETE',
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 };
 
@@ -305,12 +313,12 @@ export const evaluasiAPI = {
     const queryString = queryParams.toString();
     const endpoint = `/evaluasi${queryString ? `?${queryString}` : ''}`;
     const response = await apiFetch(endpoint);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   getByTerapisId: async (terapisId: string) => {
     const response = await apiFetch(`/evaluasi/terapis/${terapisId}`);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   createOrUpdate: async (data: any) => {
@@ -318,14 +326,14 @@ export const evaluasiAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   delete: async (id: string) => {
     const response = await apiFetch(`/evaluasi/${id}`, {
       method: 'DELETE',
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 };
 
@@ -339,12 +347,12 @@ export const trainingAPI = {
     const queryString = queryParams.toString();
     const endpoint = `/training/modules${queryString ? `?${queryString}` : ''}`;
     const response = await apiFetch(endpoint);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   getModuleById: async (id: string) => {
     const response = await apiFetch(`/training/modules/${id}`);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   create: async (data: any) => {
@@ -352,7 +360,7 @@ export const trainingAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   update: async (id: string, data: any) => {
@@ -360,14 +368,14 @@ export const trainingAPI = {
       method: 'PUT',
       body: JSON.stringify(data),
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   delete: async (id: string) => {
     const response = await apiFetch(`/training/modules/${id}`, {
       method: 'DELETE',
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 };
 
@@ -375,12 +383,12 @@ export const trainingAPI = {
 export const rolesAPI = {
   getAll: async () => {
     const response = await apiFetch('/roles');
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   getById: async (id: string) => {
     const response = await apiFetch(`/roles/${id}`);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   create: async (data: any) => {
@@ -388,7 +396,7 @@ export const rolesAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   update: async (id: string, data: any) => {
@@ -396,14 +404,14 @@ export const rolesAPI = {
       method: 'PUT',
       body: JSON.stringify(data),
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   delete: async (id: string) => {
     const response = await apiFetch(`/roles/${id}`, {
       method: 'DELETE',
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 };
 
@@ -418,12 +426,12 @@ export const usersAPI = {
     const queryString = queryParams.toString();
     const endpoint = `/users${queryString ? `?${queryString}` : ''}`;
     const response = await apiFetch(endpoint);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   getById: async (id: string) => {
     const response = await apiFetch(`/users/${id}`);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   update: async (id: string, data: any) => {
@@ -431,14 +439,14 @@ export const usersAPI = {
       method: 'PUT',
       body: JSON.stringify(data),
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   delete: async (id: string) => {
     const response = await apiFetch(`/users/${id}`, {
       method: 'DELETE',
     });
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 };
 
@@ -446,7 +454,7 @@ export const usersAPI = {
 export const statisticsAPI = {
   getStatistics: async () => {
     const response = await apiFetch('/statistics');
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 };
 
@@ -473,7 +481,7 @@ export const auditAPI = {
     const queryString = queryParams.toString();
     const endpoint = `/audit${queryString ? `?${queryString}` : ''}`;
     const response = await apiFetch(endpoint);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   getByRecord: async (tableName: string, recordId: string, limit?: number) => {
@@ -483,7 +491,7 @@ export const auditAPI = {
     const queryString = queryParams.toString();
     const endpoint = `/audit/record/${tableName}/${recordId}${queryString ? `?${queryString}` : ''}`;
     const response = await apiFetch(endpoint);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 
   getByUser: async (userId: string, limit?: number) => {
@@ -493,7 +501,7 @@ export const auditAPI = {
     const queryString = queryParams.toString();
     const endpoint = `/audit/user/${userId}${queryString ? `?${queryString}` : ''}`;
     const response = await apiFetch(endpoint);
-    return handleResponse(response);
+    return handleResponse<any>(response);
   },
 };
 

@@ -12,6 +12,7 @@ import './FormEvaluasiPage.css';
 interface ProficiencyRow {
   id: string;
   pengetahuan: string;
+  keterampilan: string;
   sebelum: string;
   sesudah: string;
 }
@@ -56,11 +57,11 @@ export const FormEvaluasiPage: FC = () => {
 
   const [tujuanPelatihan, setTujuanPelatihan] = useState<string[]>(['', '', '', '', '']);
   const [proficiencyRows, setProficiencyRows] = useState<ProficiencyRow[]>([
-    { id: '1', pengetahuan: '', sebelum: '', sesudah: '' },
-    { id: '2', pengetahuan: '', sebelum: '', sesudah: '' },
-    { id: '3', pengetahuan: '', sebelum: '', sesudah: '' },
-    { id: '4', pengetahuan: '', sebelum: '', sesudah: '' },
-    { id: '5', pengetahuan: '', sebelum: '', sesudah: '' },
+    { id: '1', pengetahuan: '', keterampilan: '', sebelum: '', sesudah: '' },
+    { id: '2', pengetahuan: '', keterampilan: '', sebelum: '', sesudah: '' },
+    { id: '3', pengetahuan: '', keterampilan: '', sebelum: '', sesudah: '' },
+    { id: '4', pengetahuan: '', keterampilan: '', sebelum: '', sesudah: '' },
+    { id: '5', pengetahuan: '', keterampilan: '', sebelum: '', sesudah: '' },
   ]);
   const [harapanKomentar, setHarapanKomentar] = useState<string[]>(['', '', '', '', '']);
 
@@ -428,11 +429,11 @@ export const FormEvaluasiPage: FC = () => {
                       });
                       setTujuanPelatihan(['', '', '', '', '']);
                       setProficiencyRows([
-                        { id: '1', pengetahuan: '', sebelum: '', sesudah: '' },
-                        { id: '2', pengetahuan: '', sebelum: '', sesudah: '' },
-                        { id: '3', pengetahuan: '', sebelum: '', sesudah: '' },
-                        { id: '4', pengetahuan: '', sebelum: '', sesudah: '' },
-                        { id: '5', pengetahuan: '', sebelum: '', sesudah: '' },
+                        { id: '1', pengetahuan: '', keterampilan: '', sebelum: '', sesudah: '' },
+                        { id: '2', pengetahuan: '', keterampilan: '', sebelum: '', sesudah: '' },
+                        { id: '3', pengetahuan: '', keterampilan: '', sebelum: '', sesudah: '' },
+                        { id: '4', pengetahuan: '', keterampilan: '', sebelum: '', sesudah: '' },
+                        { id: '5', pengetahuan: '', keterampilan: '', sebelum: '', sesudah: '' },
                       ]);
                       setHarapanKomentar(['', '', '', '', '']);
                     }}
