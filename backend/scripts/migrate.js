@@ -61,6 +61,150 @@ async function markMigrationAsExecuted(filename) {
   }
 }
 
+/**
+ * Split SQL into statements, handling dollar-quoted strings properly
+ */
+function splitSQLStatements(sql) {
+  const statements = [];
+  let currentStatement = '';
+  let inDollarQuote = false;
+  let dollarTag = '';
+  let i = 0;
+
+  while (i < sql.length) {
+    const char = sql[i];
+    const nextChar = sql[i + 1];
+
+    // Check for dollar-quoted string start: $tag$ or $$
+    if (char === '$' && !inDollarQuote) {
+      let tag = '$';
+      let j = i + 1;
+      
+      // Read the tag (can be empty $$ or $tag$)
+      while (j < sql.length && sql[j] !== '$') {
+        tag += sql[j];
+        j++;
+      }
+      
+      if (j < sql.length && sql[j] === '$') {
+        tag += '$';
+        dollarTag = tag;
+        inDollarQuote = true;
+        currentStatement += tag;
+        i = j + 1;
+        continue;
+      }
+    }
+
+    // Check for dollar-quoted string end
+    if (inDollarQuote && char === '$') {
+      let potentialTag = '$';
+      let j = i + 1;
+      
+      while (j < sql.length && sql[j] !== '$') {
+        potentialTag += sql[j];
+        j++;
+      }
+      
+      if (j < sql.length && sql[j] === '$') {
+        potentialTag += '$';
+        
+        if (potentialTag === dollarTag) {
+          // Found matching closing tag
+          currentStatement += potentialTag;
+          inDollarQuote = false;
+          dollarTag = '';
+          i = j + 1;
+          continue;
+        }
+      }
+    }
+
+    // Check for statement terminator (semicolon) only if not in dollar quote
+    if (char === ';' && !inDollarQuote) {
+      const trimmed = currentStatement.trim();
+      if (trimmed.length > 0) {
+        statements.push(trimmed);
+      }
+      currentStatement = '';
+      i++;
+      continue;
+    }
+
+    currentStatement += char;
+    i++;
+  }
+
+  // Add remaining statement
+  const trimmed = currentStatement.trim();
+  if (trimmed.length > 0) {
+    statements.push(trimmed);
+  }
+
+  return statements;
+}
+
+/**
+ * Remove comments from SQL statement
+ */
+function removeComments(statement) {
+  const lines = statement.split('\n');
+  const cleanedLines = [];
+  let inMultiLineComment = false;
+
+  for (const line of lines) {
+    let cleanedLine = line;
+    
+    // Handle multi-line comments /* ... */
+    if (inMultiLineComment) {
+      const endIndex = cleanedLine.indexOf('*/');
+      if (endIndex !== -1) {
+        cleanedLine = cleanedLine.substring(endIndex + 2);
+        inMultiLineComment = false;
+      } else {
+        continue; // Skip entire line
+      }
+    }
+
+    // Check for multi-line comment start
+    const multiLineStart = cleanedLine.indexOf('/*');
+    if (multiLineStart !== -1) {
+      const multiLineEnd = cleanedLine.indexOf('*/', multiLineStart);
+      if (multiLineEnd !== -1) {
+        // Single line multi-line comment
+        cleanedLine = cleanedLine.substring(0, multiLineStart) + cleanedLine.substring(multiLineEnd + 2);
+      } else {
+        // Multi-line comment starts here
+        cleanedLine = cleanedLine.substring(0, multiLineStart);
+        inMultiLineComment = true;
+      }
+    }
+
+    // Remove single-line comments (--), but not if inside dollar quotes
+    // For simplicity, we'll just remove lines starting with --
+    const trimmed = cleanedLine.trim();
+    if (trimmed.startsWith('--')) {
+      continue;
+    }
+
+    // Remove inline comments (-- at end of line)
+    const commentIndex = cleanedLine.indexOf('--');
+    if (commentIndex !== -1) {
+      // Make sure it's not part of a string (simple check)
+      const beforeComment = cleanedLine.substring(0, commentIndex);
+      if (!beforeComment.includes("'") || (beforeComment.match(/'/g) || []).length % 2 === 0) {
+        cleanedLine = cleanedLine.substring(0, commentIndex);
+      }
+    }
+
+    if (cleanedLine.trim().length > 0 || line.trim().length === 0) {
+      cleanedLines.push(cleanedLine);
+    }
+  }
+
+  return cleanedLines.join('\n').trim();
+}
+
 async function runMigration(filename) {
   const filePath = join(migrationsDir, filename);
   
@@ -68,24 +212,25 @@ async function runMigration(filename) {
     console.log(`\n📄 Running migration: ${filename}`);
     const sql = readFileSync(filePath, 'utf8');
     
-    // Split SQL by semicolon and execute each statement
-    // Filter out comments and empty statements
-    const statements = sql
-      .split(';')
-      .map(s => s.trim())
-      .filter(s => {
-        // Remove comments (lines starting with --)
-        const lines = s.split('\n').filter(line => {
-          const trimmed = line.trim();
-          return trimmed.length > 0 && !trimmed.startsWith('--');
-        });
-        return lines.length > 0;
-      });
+    // Split SQL into statements, handling dollar-quoted strings
+    const rawStatements = splitSQLStatements(sql);
+    
+    // Clean and filter statements
+    const statements = rawStatements
+      .map(removeComments)
+      .filter(s => s.trim().length > 0);
     
     // Execute each statement
-    for (const statement of statements) {
+    for (let i = 0; i < statements.length; i++) {
+      const statement = statements[i];
       if (statement.trim()) {
-        await pool.query(statement);
+        try {
+          await pool.query(statement);
+        } catch (error) {
+          console.error(`Error executing statement ${i + 1}/${statements.length}:`);
+          console.error(`Statement: ${statement.substring(0, 200)}...`);
+          throw error;
+        }
       }
     }
     
