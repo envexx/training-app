@@ -54,3 +54,5 @@ Setelah redeploy selesai:
 - **JANGAN** ada trailing slash `/` di akhir URL
 - Setelah mengubah env var, **WAJIB redeploy**
 
+
+

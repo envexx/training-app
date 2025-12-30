@@ -388,3 +388,5 @@ INSERT INTO roles (name, description, permissions, is_system) VALUES
 ('supervisor', 'Supervisor - Limited Access', '{"view": true, "create": true, "update": true}'::jsonb, TRUE)
 ON CONFLICT (name) DO NOTHING;
 
+
+

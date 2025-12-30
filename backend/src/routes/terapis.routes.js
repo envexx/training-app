@@ -22,69 +22,11 @@ const validate = (req, res, next) => {
   next();
 };
 
-// GET /terapis - Get all terapis with pagination and search
-router.get('/', [
-  query('page').optional().isInt({ min: 1 }).toInt(),
-  query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
-  query('search').optional().isString().trim(),
-  query('cabang').optional().trim().isIn(['Batu Aji', 'Tiban']).withMessage('Cabang must be either "Batu Aji" or "Tiban"')
-], validate, async (req, res) => {
+// GET /terapis - Get all terapis (no pagination, no filter - handled in frontend)
+router.get('/', async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
-    const search = req.query.search || '';
-    const cabang = req.query.cabang ? String(req.query.cabang).trim() : '';
-
-    console.log('GET /terapis - Query params:', { page, limit, search, cabang });
-
-    let queryText = 'SELECT * FROM terapis WHERE 1=1';
-    const queryParams = [];
-    let paramCount = 1;
-
-    if (search) {
-      queryText += ` AND (nama ILIKE $${paramCount} OR lulusan ILIKE $${paramCount})`;
-      queryParams.push(`%${search}%`);
-      paramCount++;
-    }
-
-    if (cabang && cabang !== '') {
-      queryText += ` AND cabang = $${paramCount}`;
-      queryParams.push(cabang);
-      paramCount++;
-      console.log('Filtering by cabang:', cabang);
-    }
-
-    console.log('SQL Query:', queryText);
-    console.log('Query Params:', queryParams);
-
-    queryText += ` ORDER BY created_at DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
-    queryParams.push(limit, offset);
-
-    // Get total count
-    let countQuery = 'SELECT COUNT(*) FROM terapis WHERE 1=1';
-    const countParams = [];
-    let countParamCount = 1;
-    
-    if (search) {
-      countQuery += ` AND (nama ILIKE $${countParamCount} OR lulusan ILIKE $${countParamCount})`;
-      countParams.push(`%${search}%`);
-      countParamCount++;
-    }
-    
-    if (cabang && cabang !== '') {
-      countQuery += ` AND cabang = $${countParamCount}`;
-      countParams.push(cabang);
-      countParamCount++;
-    }
-
-    const [result, countResult] = await Promise.all([
-      pool.query(queryText, queryParams),
-      pool.query(countQuery, countParams)
-    ]);
-
-    const total = parseInt(countResult.rows[0].count);
-    const totalPages = Math.ceil(total / limit);
+    const queryText = 'SELECT * FROM terapis ORDER BY created_at DESC';
+    const result = await pool.query(queryText);
 
     res.json({
       success: true,
@@ -104,13 +46,7 @@ router.get('/', [
           updatedBy: row.updated_by,
           createdAt: row.created_at,
           updatedAt: row.updated_at
-        })),
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages
-        }
+        }))
       }
     });
   } catch (error) {

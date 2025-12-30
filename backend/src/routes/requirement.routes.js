@@ -20,43 +20,11 @@ const validate = (req, res, next) => {
   next();
 };
 
-// GET /requirement - Get all requirements
-router.get('/', [
-  query('page').optional().isInt({ min: 1 }).toInt(),
-  query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
-  query('search').optional().isString().trim()
-], validate, async (req, res) => {
+// GET /requirement - Get all requirements (no pagination, no filter - handled in frontend)
+router.get('/', async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
-    const search = req.query.search || '';
-
-    let queryText = 'SELECT * FROM requirement WHERE 1=1';
-    const queryParams = [];
-
-    if (search) {
-      queryText += ' AND (nama ILIKE $1 OR lulusan ILIKE $1 OR jurusan ILIKE $1)';
-      queryParams.push(`%${search}%`);
-    }
-
-    queryText += ' ORDER BY created_at DESC LIMIT $' + (queryParams.length + 1) + ' OFFSET $' + (queryParams.length + 2);
-    queryParams.push(limit, offset);
-
-    let countQuery = 'SELECT COUNT(*) FROM requirement WHERE 1=1';
-    const countParams = [];
-    if (search) {
-      countQuery += ' AND (nama ILIKE $1 OR lulusan ILIKE $1 OR jurusan ILIKE $1)';
-      countParams.push(`%${search}%`);
-    }
-
-    const [result, countResult] = await Promise.all([
-      pool.query(queryText, queryParams),
-      pool.query(countQuery, countParams)
-    ]);
-
-    const total = parseInt(countResult.rows[0].count);
-    const totalPages = Math.ceil(total / limit);
+    const queryText = 'SELECT * FROM requirement ORDER BY created_at DESC';
+    const result = await pool.query(queryText);
 
     res.json({
       success: true,
@@ -69,13 +37,7 @@ router.get('/', [
           tanggalRequirement: row.tanggal_requirement,
           createdAt: row.created_at,
           updatedAt: row.updated_at
-        })),
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages
-        }
+        }))
       }
     });
   } catch (error) {

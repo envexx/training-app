@@ -24,7 +24,7 @@ interface Terapis {
 
 export const DataTerapisPage: FC = () => {
   const navigate = useNavigate();
-  const [terapisList, setTerapisList] = useState<Terapis[]>([]);
+  const [allTerapis, setAllTerapis] = useState<Terapis[]>([]); // Store all terapis from API
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -42,21 +42,13 @@ export const DataTerapisPage: FC = () => {
     email: '',
   });
 
-  // Load terapis from API
-  const loadTerapis = async (cabangFilter?: string) => {
+  // Load all terapis from API (no filter, no pagination)
+  const loadTerapis = async () => {
     try {
       setLoading(true);
       setError('');
-      // Only send cabang parameter if it has a value
-      const params: any = {};
-      const filterValue = cabangFilter !== undefined ? cabangFilter : filterCabang;
-      console.log('loadTerapis called with filterCabang:', filterValue, 'Type:', typeof filterValue);
-      if (filterValue && filterValue.trim() !== '') {
-        params.cabang = filterValue.trim();
-        console.log('Adding cabang to params:', params.cabang);
-      }
-      console.log('Loading terapis with filter:', params);
-      const response = await terapisAPI.getAll(params);
+      // No parameters sent to backend - get all data
+      const response = await terapisAPI.getAll();
       if (response.success && response.data.terapis) {
         // Ensure dates are properly formatted
         const terapisList = response.data.terapis.map((t: any) => ({
@@ -66,9 +58,7 @@ export const DataTerapisPage: FC = () => {
           mulaiKontrak: t.mulaiKontrak || t.mulai_kontrak,
           endKontrak: t.endKontrak || t.end_kontrak,
         }));
-        console.log('Loaded terapis:', terapisList.length, 'items');
-        console.log('Cabang values:', terapisList.map((t: Terapis) => ({ nama: t.nama, cabang: t.cabang })));
-        setTerapisList(terapisList);
+        setAllTerapis(terapisList);
       }
     } catch (err: any) {
       setError(err.message || 'Gagal memuat data terapis');
@@ -78,10 +68,14 @@ export const DataTerapisPage: FC = () => {
     }
   };
 
+  // Filter terapis in frontend based on filterCabang
+  const filteredTerapis = filterCabang 
+    ? allTerapis.filter(t => t.cabang === filterCabang)
+    : allTerapis;
+
   useEffect(() => {
-    console.log('useEffect triggered, filterCabang:', filterCabang);
-    loadTerapis(filterCabang);
-  }, [filterCabang]);
+    loadTerapis();
+  }, []);
 
   const handleAdd = () => {
     setEditingId(null);
@@ -123,7 +117,7 @@ export const DataTerapisPage: FC = () => {
     try {
       await terapisAPI.delete(id);
       // Reload list after delete
-      await loadTerapis(filterCabang);
+      await loadTerapis();
       alert('Terapis berhasil dihapus');
     } catch (err: any) {
       alert(err.message || 'Gagal menghapus terapis');
@@ -162,7 +156,7 @@ export const DataTerapisPage: FC = () => {
       }
 
       // Reload list
-      await loadTerapis(filterCabang);
+      await loadTerapis();
       
       setShowForm(false);
       setEditingId(null);
@@ -367,7 +361,7 @@ export const DataTerapisPage: FC = () => {
             {error && (
               <div className="error-message" style={{ marginBottom: '16px' }}>
                 <i className="fas fa-exclamation-circle"></i> {error}
-                <button onClick={() => loadTerapis(filterCabang)} style={{ marginLeft: '12px', padding: '4px 8px', fontSize: '12px' }}>
+                <button onClick={() => loadTerapis()} style={{ marginLeft: '12px', padding: '4px 8px', fontSize: '12px' }}>
                   Coba Lagi
                 </button>
               </div>
@@ -378,17 +372,19 @@ export const DataTerapisPage: FC = () => {
                 <i className="fas fa-spinner fa-spin"></i>
                 <p>Memuat data...</p>
               </div>
-            ) : terapisList.length === 0 ? (
+            ) : filteredTerapis.length === 0 ? (
               <div className="empty-state">
                 <i className="fas fa-user-md"></i>
-                <p>Belum ada data terapis</p>
-                <button className="btn btn-primary" onClick={handleAdd}>
-                  Tambah Terapis Pertama
-                </button>
+                <p>{filterCabang ? `Tidak ada data terapis untuk cabang ${filterCabang}` : 'Belum ada data terapis'}</p>
+                {!filterCabang && (
+                  <button className="btn btn-primary" onClick={handleAdd}>
+                    Tambah Terapis Pertama
+                  </button>
+                )}
               </div>
             ) : (
               <div className="terapis-list">
-                {terapisList.map((terapis) => (
+                {filteredTerapis.map((terapis) => (
                   <div key={terapis.id} className="terapis-card">
                     <div className="terapis-card-header">
                       <div className="terapis-avatar">

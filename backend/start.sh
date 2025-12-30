@@ -16,3 +16,5 @@ npm run migrate || {
 echo "🌐 Starting Node.js server..."
 exec npm start
 
+
+

@@ -39,6 +39,7 @@ export const DataRequirementPage: FC = () => {
     try {
       setLoading(true);
       setError('');
+      // No parameters sent to backend - get all data
       const response = await requirementAPI.getAll();
       if (response.success && response.data.requirements) {
         setRequirementList(response.data.requirements);
